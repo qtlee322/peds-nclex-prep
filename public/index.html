@@ -191,6 +191,42 @@ button.ghost:hover{color:var(--ink); border-color:var(--ink-soft);}
 .feedback.bad{background:var(--brick-pale); color:var(--brick);}
 .quiz .rationale{display:block;}
 .missed-list{margin:10px 0 0; padding-left:18px; font-size:13.5px; line-height:1.5; color:var(--ink-soft);}
+.rp-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:14px;}
+.rp-stat{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-card); padding:14px 16px;}
+.rp-stat .lbl{font-size:12px; color:var(--ink-soft);}
+.rp-stat .val{font-family:'IBM Plex Serif',serif; font-size:28px; font-weight:700; color:var(--ink); line-height:1.15; margin-top:4px;}
+.rp-stat .hint{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+.up{color:var(--green);} .down{color:var(--brick);}
+.card h3{font-size:16px; color:var(--ink); margin:0 0 4px;}
+.card .sub2{font-size:13px; color:var(--ink-soft); margin:0 0 12px; line-height:1.45;}
+.trend-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:10px;}
+.trend{border:1px solid var(--line); border-radius:8px; padding:10px 12px;}
+.trend .name{font-size:13px; font-weight:600; color:var(--ink);}
+.trend .meta{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:2px;}
+.trend svg{display:block; width:100%; height:auto; margin-top:6px; overflow:visible;}
+.trend .gridline{stroke:var(--line); stroke-width:1;}
+.trend .line{fill:none; stroke:var(--teal); stroke-width:2; stroke-linejoin:round; stroke-linecap:round;}
+.trend .pt{fill:var(--teal); stroke:var(--paper); stroke-width:2;}
+.trend .pt:hover{r:6;}
+.topic-row{display:grid; grid-template-columns:minmax(120px,1.1fr) 2fr auto; gap:10px; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13.5px;}
+.topic-row:first-of-type{border-top:none;}
+.topic-row .track{height:10px; background:var(--rail); border-radius:99px; overflow:hidden;}
+.topic-row .fill{height:100%; background:var(--teal); border-radius:99px;}
+.topic-row .num{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); white-space:nowrap;}
+.study{border:1px solid var(--line); border-left:4px solid var(--brick); border-radius:8px; padding:12px 14px; margin-bottom:10px;}
+.study .top{display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap;}
+.study .name{font-weight:600; font-size:14.5px;}
+.study .meta{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft);}
+.study ul{margin:8px 0 0; padding-left:18px; font-size:13.5px; line-height:1.5; color:var(--ink);}
+.study li{margin-bottom:4px;}
+details.missed-group{border-top:1px solid var(--line); padding:8px 0;}
+details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
+.miss{padding:10px 0 4px 2px; border-bottom:1px dashed var(--line); font-size:13.5px; line-height:1.5;}
+.miss:last-child{border-bottom:none;}
+.miss .ans{color:var(--green); font-weight:600;}
+.miss .rat{color:var(--ink-soft);}
+.empty{color:var(--ink-soft); font-size:14px;}
+.score-banner .row{margin-top:10px;}
 </style>
 </head>
 <body>
@@ -209,9 +245,11 @@ button.ghost:hover{color:var(--ink); border-color:var(--ink-soft);}
   <div class="modes" id="modes">
     <button data-mode="tests" class="active">Practice Tests</button>
     <button data-mode="quiz">Quiz Mode</button>
+    <button data-mode="report">Progress Report</button>
   </div>
 
   <div id="quizView" class="quiz-wrap hidden"></div>
+  <div id="reportView" class="quiz-wrap hidden"></div>
 
   <div class="layout" id="testsView">
     <nav class="rail" id="rail"></nav>
@@ -486,6 +524,7 @@ let locked = {};  // key: testId -> bool
 let attempts = {}; // key: testId or quiz:<scope> -> [{score,total,pct,at}]
 let missed = {};   // key: question id -> true (questions missed in quiz mode, cleared when answered right)
 let orders = {};   // key: testId -> shuffled list of item indices for the current attempt
+let qlog = {};     // key: source question id -> recent results [{ok, at, src}] (newest last)
 
 /* ---------- SHUFFLING ---------- */
 function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -591,7 +630,9 @@ function renderScoreBanner(){
   const pct = Math.round((correctCount / items.length) * 100);
   banner.className = 'score-banner show';
   banner.style.background = pct >= 80 ? 'var(--green-pale)' : pct >= 60 ? 'var(--amber-pale)' : 'var(--brick-pale)';
-  banner.innerHTML = `<div class="big">${correctCount} / ${items.length}</div><div class="sub">${pct}% correct \u2014 review rationales below, or reset to try again.</div>`;
+  const missedN = items.length - correctCount;
+  banner.innerHTML = `<div class="big">${correctCount} / ${items.length}</div><div class="sub">${pct}% correct \u2014 review rationales below, or retake for a new order.</div>
+    <div class="row"><button class="primary" onclick="setMode('report')">See what to study${missedN ? ' (' + missedN + ' missed)' : ''}</button></div>`;
 }
 
 function renderQuestions(){
@@ -716,6 +757,12 @@ document.getElementById('submitBtn').onclick = () => {
   const t = TESTS[activeIdx];
   locked[t.id] = true;
   (attempts[t.id] = attempts[t.id] || []).push({...scoreFor(t), at: Date.now()});
+  const now = Date.now();
+  t.items.forEach((it, i) => {
+    if(it.type === 'note') return;
+    const ok = (answers[qKey(t.id, i)] || []).slice().sort().join(',') === it.correct.slice().sort().join(',');
+    logResult(ID_OF.get(it), ok, 'test', now);
+  });
   renderAll();
   saveState();
   window.scrollTo({top:0, behavior:'smooth'});
@@ -738,8 +785,9 @@ function saveState(){
     localStorage.setItem('peds_nclex_attempts', JSON.stringify(attempts));
     localStorage.setItem('peds_nclex_missed', JSON.stringify(missed));
     localStorage.setItem('peds_nclex_orders', JSON.stringify(orders));
+    localStorage.setItem('peds_nclex_qlog', JSON.stringify(qlog));
   }catch(e){ /* storage unavailable */ }
-  if(window.cloudSave) window.cloudSave({answers, locked, attempts, missed, orders});
+  if(window.cloudSave) window.cloudSave({answers, locked, attempts, missed, orders, qlog});
 }
 function loadState(){
   try{
@@ -753,9 +801,141 @@ function loadState(){
     if(m) missed = JSON.parse(m);
     const o = localStorage.getItem('peds_nclex_orders');
     if(o) orders = JSON.parse(o);
+    const ql = localStorage.getItem('peds_nclex_qlog');
+    if(ql) qlog = JSON.parse(ql);
   }catch(e){ /* ignore */ }
 }
 
+
+
+/* ---------- PROGRESS REPORT ---------- */
+// Study concept for every question in the four topic tests (null = case-study text).
+const CONCEPTS = {
+  t1: ['Compartment syndrome','Traction care','Developmental dysplasia of the hip (DDH)','Osteogenesis imperfecta','Clubfoot (Ponseti method)','Slipped capital femoral epiphysis (SCFE)','Compartment syndrome','Osteomyelitis','Congenital torticollis','Legg-Calvé-Perthes disease','Cast care','Septic arthritis',"Nursemaid's elbow",'Rickets',null,'Compartment syndrome','Compartment syndrome',null,'Overuse injuries'],
+  t2: ['Pediatric skin differences','Impetigo','Staph scalded skin syndrome','CA-MRSA','Tinea (fungal infections)','Tinea (fungal infections)','Stings & anaphylaxis','Burns: size (TBSA) & risk','Burns: depth','Diaper dermatitis','Atopic dermatitis (eczema)','Primary vs secondary lesions','Burns: size (TBSA) & risk',null,'Burns: depth','Burns: first aid',null,'Impetigo','Impetigo'],
+  t3: ['Sickle cell disease','Hemophilia','Iron deficiency anemia','Lead poisoning','Pediatric HIV','Juvenile idiopathic arthritis','Anaphylaxis','Febrile neutropenia','Leukemia (ALL)',"Wilms' tumor",'Sickle cell disease','Neutropenic precautions','Brain tumors',null,'Sickle cell disease','Sickle cell disease',null,'Febrile neutropenia'],
+  t4: ['Acute otitis media','Acute otitis media','PE tubes','Ear foreign bodies','Conjunctivitis','Strabismus','Tonsillectomy care','Acute otitis media','Conjunctivitis','Tonsillectomy care',null,'Acute otitis media','PE tubes',null,'Tonsillectomy care']
+};
+// Source question id for every question object (the combined exam reuses the same objects).
+const ID_OF = new Map(), Q_BY_ID = {};
+TESTS.slice(0,4).forEach(t => t.items.forEach((it, i) => {
+  if(it.type === 'note') return;
+  const id = t.id + '::' + i;
+  ID_OF.set(it, id);
+  Q_BY_ID[id] = { id, it, testId: t.id, topic: t.title.replace('&amp;','&'), concept: CONCEPTS[t.id][i] || t.title };
+}));
+const ALL_IDS = Object.keys(Q_BY_ID);
+
+function logResult(id, ok, src, at = Date.now()){
+  if(!id) return;
+  const list = (qlog[id] = qlog[id] || []);
+  list.push({ ok, at, src });
+  if(list.length > 10) list.splice(0, list.length - 10);
+}
+const lastResult = id => (qlog[id] && qlog[id].length) ? qlog[id][qlog[id].length - 1] : null;
+// Recent accuracy for a question: share right in its last 3 tries.
+function recentAcc(id){ const r = (qlog[id] || []).slice(-3); return r.length ? r.filter(x => x.ok).length / r.length : null; }
+
+function sparkline(points){
+  const W = 200, H = 64, pad = 6;
+  if(!points.length) return '';
+  const x = i => points.length === 1 ? W/2 : pad + i * (W - 2*pad) / (points.length - 1);
+  const y = v => H - pad - (v / 100) * (H - 2*pad);
+  const d = points.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.pct).toFixed(1)).join(' ');
+  const dots = points.map((p, i) => `<circle class="pt" r="4" cx="${x(i).toFixed(1)}" cy="${y(p.pct).toFixed(1)}"><title>Attempt ${i+1} · ${new Date(p.at).toLocaleDateString()} · ${p.score}/${p.total} (${p.pct}%)</title></circle>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Scores: ${points.map(p => p.pct + '%').join(', ')}">
+    <line class="gridline" x1="0" x2="${W}" y1="${y(80)}" y2="${y(80)}" stroke-dasharray="3 3"/>
+    ${points.length > 1 ? `<path class="line" d="${d}"/>` : ''}${dots}</svg>`;
+}
+
+function renderReport(){
+  const v = document.getElementById('reportView');
+  const seen = ALL_IDS.filter(id => lastResult(id));
+  const testRuns = TESTS.map(t => attempts[t.id] || []);
+  const quizRuns = Object.entries(attempts).filter(([k]) => k.startsWith('quiz:')).flatMap(([, l]) => l).sort((a,b) => a.at - b.at);
+  if(!seen.length && !testRuns.some(r => r.length) && !quizRuns.length){
+    v.innerHTML = `<div class="card"><h2>Progress Report</h2><p class="sub">Submit a practice test or answer some quiz questions and your report will appear here: your scores over time, what you missed, and what to study next.</p>
+      <div class="row"><button class="primary" onclick="setMode('tests')">Take a practice test</button><button class="ghost" onclick="setMode('quiz')">Start a quiz</button></div></div>`;
+    return;
+  }
+
+  // Headline numbers
+  const right = seen.filter(id => lastResult(id).ok).length;
+  const acc = seen.length ? Math.round(right / seen.length * 100) : 0;
+  const deltas = testRuns.filter(r => r.length > 1).map(r => r[r.length-1].pct - r[0].pct);
+  const avgDelta = deltas.length ? Math.round(deltas.reduce((a,b) => a+b, 0) / deltas.length) : null;
+  const nTests = testRuns.reduce((a, r) => a + r.length, 0);
+  const missedNow = seen.filter(id => !lastResult(id).ok);
+
+  const stats = `<div class="rp-stats">
+    <div class="rp-stat"><div class="lbl">Current accuracy</div><div class="val">${acc}%</div><div class="hint">${right} of ${seen.length} questions right on your latest try</div></div>
+    <div class="rp-stat"><div class="lbl">Improvement</div><div class="val ${avgDelta > 0 ? 'up' : avgDelta < 0 ? 'down' : ''}">${avgDelta === null ? '—' : (avgDelta > 0 ? '+' : '') + avgDelta + ' pts'}</div><div class="hint">${avgDelta === null ? 'Retake a test to see your change' : 'first try → latest, averaged across tests'}</div></div>
+    <div class="rp-stat"><div class="lbl">Still missing</div><div class="val">${missedNow.length}</div><div class="hint">questions wrong on your latest try</div></div>
+    <div class="rp-stat"><div class="lbl">Practiced</div><div class="val">${seen.length}/${ALL_IDS.length}</div><div class="hint">${nTests} test${nTests === 1 ? '' : 's'} · ${quizRuns.length} quiz${quizRuns.length === 1 ? '' : 'zes'}</div></div>
+  </div>`;
+
+  // Score trends (small multiples, one per test + quizzes)
+  const series = TESTS.map((t, k) => ({ name: t.title.replace('&amp;','&'), runs: testRuns[k] })).concat([{ name: 'Quizzes', runs: quizRuns }]).filter(s => s.runs.length);
+  const trends = `<div class="card"><h3>Scores over time</h3><p class="sub2">Each dot is one attempt (hover for details). Dashed line = 80% target.</p><div class="trend-grid">
+    ${series.map(s => { const f = s.runs[0], l = s.runs[s.runs.length-1], d = l.pct - f.pct;
+      return `<div class="trend"><div class="name">${s.name}</div>
+        <div class="meta">latest ${l.pct}% · ${s.runs.length} attempt${s.runs.length === 1 ? '' : 's'}${s.runs.length > 1 ? ` · <span class="${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '+' : ''}${d} pts</span>` : ''}</div>
+        ${sparkline(s.runs.slice(-12))}</div>`; }).join('')}
+  </div></div>`;
+
+  // Topic breakdown
+  const topics = TESTS.slice(0,4).map(t => {
+    const ids = ALL_IDS.filter(id => Q_BY_ID[id].testId === t.id), s = ids.filter(id => lastResult(id));
+    const r = s.filter(id => lastResult(id).ok).length;
+    return { name: t.title.replace('&amp;','&'), seen: s.length, total: ids.length, right: r, pct: s.length ? Math.round(r / s.length * 100) : null };
+  });
+  const topicCard = `<div class="card"><h3>By topic</h3><p class="sub2">Share of questions right on your latest try.</p>
+    ${topics.map(tp => `<div class="topic-row"><div>${tp.name}</div>
+      <div class="track" title="${tp.pct === null ? 'Not practiced yet' : tp.right + ' of ' + tp.seen + ' right'}"><div class="fill" style="width:${tp.pct || 0}%"></div></div>
+      <div class="num">${tp.pct === null ? 'not started' : tp.pct + '% · ' + tp.right + '/' + tp.seen}</div></div>`).join('')}
+  </div>`;
+
+  // What to study: concepts ranked by recent accuracy
+  const byConcept = {};
+  seen.forEach(id => { const q = Q_BY_ID[id]; (byConcept[q.concept] = byConcept[q.concept] || { name: q.concept, topic: q.topic, ids: [] }).ids.push(id); });
+  const conceptList = Object.values(byConcept).map(c => {
+    const accs = c.ids.map(recentAcc);
+    c.acc = Math.round(accs.reduce((a,b) => a+b, 0) / accs.length * 100);
+    c.missing = c.ids.filter(id => !lastResult(id).ok);
+    c.allIds = ALL_IDS.filter(id => Q_BY_ID[id].concept === c.name);
+    return c;
+  }).filter(c => c.missing.length || c.acc < 80).sort((a,b) => b.missing.length - a.missing.length || a.acc - b.acc);
+  const focus = conceptList.slice(0, 6);
+  window._studyIds = [...new Set(focus.flatMap(c => c.allIds))];
+  const studyCard = `<div class="card"><h3>What to study next</h3>
+    ${focus.length ? `<p class="sub2">Your weakest areas, based on your last few answers. Review these key points, then quiz yourself on them.</p>
+      ${focus.map(c => `<div class="study"><div class="top"><span class="name">${c.name}</span><span class="meta">${c.topic} · ${c.acc}% recent accuracy · ${c.missing.length ? c.missing.length + ' missed now' : 'right last time — keep reviewing'}</span></div>
+        <ul>${[...new Set((c.missing.length ? c.missing : c.ids).map(id => Q_BY_ID[id].it.rationale))].slice(0, 3).map(r => `<li>${r}</li>`).join('')}</ul></div>`).join('')}
+      <div class="row"><button class="primary" onclick="quizStudyList()">Quiz me on these (${window._studyIds.length} questions)</button></div>`
+    : `<p class="sub2">Nothing weak right now — every concept you've practiced is at 80% or better. ${seen.length < ALL_IDS.length ? 'Try the topics you haven’t started yet.' : 'Keep it fresh with a mixed quiz.'}</p>`}
+  </div>`;
+
+  // Everything missed on the latest try, grouped by topic
+  const groups = TESTS.slice(0,4).map(t => ({ name: t.title.replace('&amp;','&'), ids: missedNow.filter(id => Q_BY_ID[id].testId === t.id) })).filter(g => g.ids.length);
+  const missCard = `<div class="card"><h3>Questions you missed</h3>
+    ${groups.length ? `<p class="sub2">Wrong on your most recent try. Get one right in a test or quiz and it drops off this list.</p>
+      ${groups.map(g => `<details class="missed-group"><summary>${g.name} (${g.ids.length})</summary>
+        ${g.ids.map(id => { const it = Q_BY_ID[id].it; const ans = it.options.filter(o => it.correct.includes(o[0])).map(o => esc(o[1]));
+          return `<div class="miss"><div>${esc(it.prompt)}</div><div class="ans">Correct: ${ans.join('; ')}</div><div class="rat">${it.rationale}</div></div>`; }).join('')}
+      </details>`).join('')}`
+    : '<p class="sub2">No misses on your latest tries. ✔</p>'}
+  </div>`;
+
+  v.innerHTML = `<div class="card" style="padding-bottom:14px"><h2>Progress Report</h2><p class="sub" style="margin:0">Graded from every practice test and quiz you’ve taken${window.cloudSave ? '' : ' on this device'}.</p></div>
+    ${stats}${studyCard}${trends}${topicCard}${missCard}`;
+}
+
+function quizStudyList(){
+  const qs = (window._studyIds || []).map(id => BANK.find(q => q.id === id)).filter(Boolean);
+  if(!qs.length) return;
+  setMode('quiz');
+  startQuiz(freshShuffle(qs, lastQuiz, q => q.id), 'study');
+}
 
 /* ---------- QUIZ MODE ---------- */
 // Question bank from the four topic tests (the combined exam reuses these, so it's excluded).
@@ -779,6 +959,8 @@ function setMode(m){
   document.getElementById('testsView').classList.toggle('hidden', m !== 'tests');
   document.getElementById('footerBar').classList.toggle('hidden', m !== 'tests');
   document.getElementById('quizView').classList.toggle('hidden', m !== 'quiz');
+  document.getElementById('reportView').classList.toggle('hidden', m !== 'report');
+  if(m === 'report') renderReport();
   document.getElementById('railCount').classList.toggle('hidden', m !== 'tests');
   if(m === 'quiz' && !quiz) renderQuizSetup();
   window.scrollTo({top:0});
@@ -809,7 +991,7 @@ function renderQuizSetup(){
         <button class="ghost" id="qzMissed" ${missedCount ? '' : 'disabled'}>Review missed (${missedCount})</button>
       </div>
     </div>
-    ${recent.length ? `<div class="card"><h2 style="font-size:17px">Recent quizzes</h2><ul class="missed-list">${recent.map(a => `<li>${new Date(a.at).toLocaleDateString()} — ${a.score}/${a.total} (${a.pct}%) · ${a.k === 'quiz:missed' ? 'Missed review' : a.k === 'quiz:mixed' ? 'Mixed topics' : ((TESTS.find(t => 'quiz:'+t.id === a.k)||{}).title || '')}</li>`).join('')}</ul></div>` : ''}`;
+    ${recent.length ? `<div class="card"><h2 style="font-size:17px">Recent quizzes</h2><ul class="missed-list">${recent.map(a => `<li>${new Date(a.at).toLocaleDateString()} — ${a.score}/${a.total} (${a.pct}%) · ${a.k === 'quiz:missed' ? 'Missed review' : a.k === 'quiz:study' ? 'Study plan' : a.k === 'quiz:mixed' ? 'Mixed topics' : ((TESTS.find(t => 'quiz:'+t.id === a.k)||{}).title || '')}</li>`).join('')}</ul></div>` : ''}`;
   document.getElementById('qzStart').onclick = () => {
     const ids = [...v.querySelectorAll('.topic input:checked')].map(x => x.value);
     if(!ids.length) return;
@@ -869,6 +1051,7 @@ function renderQuizQ(){
       quiz.checked = true;
       const good = quiz.picked.slice().sort().join(',') === q.correct.slice().sort().join(',');
       if(good){ quiz.right++; delete missed[q.id]; } else { quiz.wrongIds.push(q.id); missed[q.id] = true; }
+      logResult(q.id, good, 'quiz');
       saveState();
       renderQuizQ();
     } else if(quiz.i + 1 < quiz.qs.length){
@@ -903,16 +1086,18 @@ function finishQuiz(early){
 }
 
 // Called by the Firebase module when cloud data arrives
-window.getLocalState = () => ({answers, locked, attempts, missed, orders});
+window.getLocalState = () => ({answers, locked, attempts, missed, orders, qlog});
 window.applyCloudState = (d) => {
-  answers = d.answers || {}; locked = d.locked || {}; attempts = d.attempts || {}; missed = d.missed || {}; orders = d.orders || orders;
+  answers = d.answers || {}; locked = d.locked || {}; attempts = d.attempts || {}; missed = d.missed || {}; orders = d.orders || orders; qlog = d.qlog || qlog;
   try{
     localStorage.setItem('peds_nclex_answers', JSON.stringify(answers));
     localStorage.setItem('peds_nclex_locked', JSON.stringify(locked));
     localStorage.setItem('peds_nclex_attempts', JSON.stringify(attempts));
     localStorage.setItem('peds_nclex_missed', JSON.stringify(missed));
     localStorage.setItem('peds_nclex_orders', JSON.stringify(orders));
+    localStorage.setItem('peds_nclex_qlog', JSON.stringify(qlog));
   }catch(e){}
+  if(mode === 'report') renderReport();
   renderAll();
   if(mode === 'quiz' && !quiz) renderQuizSetup();
 };

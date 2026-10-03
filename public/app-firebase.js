@@ -46,7 +46,7 @@ window.cloudSave = (state) => {
   timer = setTimeout(async () => {
     try {
       await setDoc(doc(db, 'users', user.uid), {
-        answers: state.answers, locked: state.locked, attempts: state.attempts, missed: state.missed || {}, orders: state.orders || {},
+        answers: state.answers, locked: state.locked, attempts: state.attempts, missed: state.missed || {}, orders: state.orders || {}, qlog: state.qlog || {},
         updatedAt: serverTimestamp()
       });
       setStatus('Synced');
@@ -72,6 +72,16 @@ function renderSignedIn(u) {
   authEl.querySelector('button').onclick = () => signOut(auth);
 }
 
+function mergeLogs(a = {}, b = {}) {
+  const out = {};
+  for (const id of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const seen = new Set(), list = [];
+    for (const r of [...(a[id] || []), ...(b[id] || [])]) { const k = r.at + ':' + r.ok; if (!seen.has(k)) { seen.add(k); list.push(r); } }
+    out[id] = list.sort((x, y) => x.at - y.at).slice(-10);
+  }
+  return out;
+}
+
 onAuthStateChanged(auth, async (u) => {
   user = u;
   if (!u) { renderSignedOut(); return; }
@@ -88,7 +98,7 @@ onAuthStateChanged(auth, async (u) => {
         const seen = new Set((attempts[id] || []).map(a => a.at));
         attempts[id] = [...(attempts[id] || []), ...list.filter(a => !seen.has(a.at))].sort((a, b) => a.at - b.at);
       }
-      window.applyCloudState({ answers: cloud.answers, locked: cloud.locked, attempts, missed: { ...(local.missed || {}), ...(cloud.missed || {}) }, orders: cloud.orders || local.orders });
+      window.applyCloudState({ answers: cloud.answers, locked: cloud.locked, attempts, missed: { ...(local.missed || {}), ...(cloud.missed || {}) }, orders: cloud.orders || local.orders, qlog: mergeLogs(cloud.qlog, local.qlog) });
       window.cloudSave(window.getLocalState());
     } else {
       window.cloudSave(window.getLocalState()); // first sign-in: upload this device's progress
