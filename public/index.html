@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pediatric NCLEX Prep</title>
+<title>NCLEX Prep</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -227,14 +227,22 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
 .miss .rat{color:var(--ink-soft);}
 .empty{color:var(--ink-soft); font-size:14px;}
 .score-banner .row{margin-top:10px;}
+.groupbar{display:flex; gap:6px; flex-wrap:wrap; margin:-6px 0 14px;}
+.groupbar button{font:inherit; font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:var(--radius-chip); border:1px solid var(--line); background:transparent; color:var(--ink-soft); cursor:pointer;}
+.groupbar button.active{background:var(--teal-pale); color:var(--teal-deep); border-color:var(--teal);}
+.topic-group{margin-top:12px;}
+.topic-group h4{display:flex; align-items:center; gap:8px; font-size:13px; margin:0; color:var(--ink);}
+.topic-group h4 input{accent-color:var(--teal);}
+.topic-group .topic-grid{margin-top:6px;}
+.topic-row.grp{grid-template-columns:1fr; padding-top:14px; font-weight:600; font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="masthead">
     <div>
-      <h1>Pediatric NCLEX Prep</h1>
-      <p>Five practice sets built from your course objectives — musculoskeletal, integumentary, hematology/immunology/oncology, ENT &amp; eye, plus a combined 50-item exam.</p>
+      <h1>NCLEX Prep</h1>
+      <p>Practice sets built from your course objectives — pediatric body systems, Exam 1 (genetics, professional nursing, growth &amp; development, the hospitalized child) and Exam 2 (pregnancy, labor, postpartum, family &amp; community health).</p>
     </div>
     <div class="masthead-right">
       <span class="chip-count" id="railCount"></span>
@@ -251,6 +259,7 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
   <div id="quizView" class="quiz-wrap hidden"></div>
   <div id="reportView" class="quiz-wrap hidden"></div>
 
+  <div class="groupbar" id="groupBar"></div>
   <div class="layout" id="testsView">
     <nav class="rail" id="rail"></nav>
     <div class="panel">
@@ -272,11 +281,12 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
   </div>
 </div>
 
+<script src="exams.js"></script>
 <script>
 /* ---------- DATA ---------- */
 const TESTS = [
 {
-  id:'t1', tab:'Test 1', title:'Musculoskeletal Disorders',
+  id:'t1', group:'peds', tab:'Peds · Test 1', title:'Musculoskeletal Disorders',
   desc:'Casting, compartment syndrome, traction, fixation, DDH, OI, clubfoot, SCFE, Legg-Calve-Perthes, osteomyelitis, septic arthritis, scoliosis, fractures, overuse syndromes, radial head subluxation.',
   items:[
     {type:'mc', prompt:"A 4-year-old has a new long-leg cast applied for a femur fracture. Which finding requires the nurse to notify the provider immediately?",
@@ -335,7 +345,7 @@ const TESTS = [
   ]
 },
 {
-  id:'t2', tab:'Test 2', title:'Integumentary / Skin Disorders',
+  id:'t2', group:'peds', tab:'Peds · Test 2', title:'Integumentary / Skin Disorders',
   desc:'Skin structure in childhood, primary/secondary lesions, burns, bacterial & fungal infections, bites/stings, inflammatory and irritant conditions.',
   items:[
     {type:'mc', prompt:"Compared to adult skin, a key characteristic of an infant's skin is:",
@@ -394,7 +404,7 @@ const TESTS = [
   ]
 },
 {
-  id:'t3', tab:'Test 3', title:'Hematology, Immunology &amp; Oncology',
+  id:'t3', group:'peds', tab:'Peds · Test 3', title:'Hematology, Immunology &amp; Oncology',
   desc:'Hemophilia, sickle cell disease, iron deficiency anemia, lead poisoning, HIV, JIA, allergies/anaphylaxis, leukemia, lymphoma, brain tumor, Wilms\u2019 tumor, neutropenic precautions.',
   items:[
     {type:'mc', prompt:"A child with sickle cell disease is admitted in vaso-occlusive (pain) crisis. Which intervention is a priority?",
@@ -450,7 +460,7 @@ const TESTS = [
   ]
 },
 {
-  id:'t4', tab:'Test 4', title:'ENT &amp; Eye Disorders',
+  id:'t4', group:'peds', tab:'Peds · Test 4', title:'ENT &amp; Eye Disorders',
   desc:'Acute otitis media, otitis media with effusion, PE tubes, ear foreign objects, conjunctivitis, strabismus, amblyopia, tonsillectomy.',
   items:[
     {type:'mc', prompt:"A 2-year-old presents with ear pain, fever, and irritability. Otoscopic exam reveals a bulging, erythematous tympanic membrane with decreased mobility. This is most consistent with:",
@@ -497,7 +507,7 @@ const TESTS = [
   ]
 },
 {
-  id:'tc', tab:'Combined', title:'Combined 50-Item Exam',
+  id:'tc', group:'peds', combinedOf:['t1','t2','t3','t4'], tab:'Peds · Combined', title:'Combined 50-Item Exam',
   desc:'All four systems in one sitting \u2014 musculoskeletal, integumentary, hematology/immunology/oncology, and ENT &amp; eye, mirroring the standalone combined test and answer key.',
   items:[] // filled below by concatenation
 }
@@ -516,6 +526,12 @@ TESTS[4].items = [
   // Section 4: ENT & Eye (12)
   ...pick(3, [0,2,3,5,6,4,7,8,9,10,11,13])
 ];
+
+// Exam 1 & Exam 2 sets (exams.js); "All units" exams reuse the unit questions in order.
+TESTS.push(...(window.EXTRA_TESTS || []));
+TESTS.forEach(t => { if(t.combinedOf && !t.items) t.items = t.combinedOf.flatMap(id => TESTS.find(x => x.id === id).items); });
+const SOURCE_TESTS = TESTS.filter(t => !t.combinedOf);
+const GROUPS = [{ id:'peds', name:'Peds Systems' }, { id:'exam1', name:'Exam 1' }, { id:'exam2', name:'Exam 2' }];
 
 /* ---------- STATE & RENDER ---------- */
 let activeIdx = 0;
@@ -538,7 +554,7 @@ function freshShuffle(arr, prev, sig = x => x){
 // Group a test into blocks: each case study stays together with the questions that follow it.
 // Which case study each question belongs to in its original test (the combined exam reuses these objects).
 const CASE_OF = new Map();
-TESTS.slice(0,4).forEach(t => { let note = null; t.items.forEach(it => { if(it.type === 'note') note = it; else CASE_OF.set(it, note); }); });
+SOURCE_TESTS.forEach(t => { let note = null; t.items.forEach(it => { if(it.type === 'note') note = it; else CASE_OF.set(it, note); }); });
 function testBlocks(t){
   const blocks = []; let cur = null;
   t.items.forEach((it, i) => {
@@ -575,9 +591,13 @@ function orderFor(t){
 function qKey(testId, i){ return testId + '::' + i; }
 
 function renderRail(){
+  const group = TESTS[activeIdx].group;
+  document.getElementById('groupBar').innerHTML = GROUPS.map(g =>
+    `<button class="${g.id === group ? 'active' : ''}" onclick="activeIdx = TESTS.findIndex(t => t.group === '${g.id}'); renderAll(); window.scrollTo({top:0});">${g.name}</button>`).join('');
   const rail = document.getElementById('rail');
   rail.innerHTML = '';
   TESTS.forEach((t, i) => {
+    if(t.group !== group) return;
     const b = document.createElement('button');
     const qCount = t.items.filter(it => it.type !== 'note').length;
     b.className = i === activeIdx ? 'active' : '';
@@ -818,11 +838,11 @@ const CONCEPTS = {
 };
 // Source question id for every question object (the combined exam reuses the same objects).
 const ID_OF = new Map(), Q_BY_ID = {};
-TESTS.slice(0,4).forEach(t => t.items.forEach((it, i) => {
+SOURCE_TESTS.forEach(t => t.items.forEach((it, i) => {
   if(it.type === 'note') return;
   const id = t.id + '::' + i;
   ID_OF.set(it, id);
-  Q_BY_ID[id] = { id, it, testId: t.id, topic: t.title.replace('&amp;','&'), concept: CONCEPTS[t.id][i] || t.title };
+  Q_BY_ID[id] = { id, it, testId: t.id, topic: t.title.replace('&amp;','&'), concept: (CONCEPTS[t.id] && CONCEPTS[t.id][i]) || it.c || t.title.replace('&amp;','&') };
 }));
 const ALL_IDS = Object.keys(Q_BY_ID);
 
@@ -884,13 +904,13 @@ function renderReport(){
   </div></div>`;
 
   // Topic breakdown
-  const topics = TESTS.slice(0,4).map(t => {
+  const topics = SOURCE_TESTS.map(t => {
     const ids = ALL_IDS.filter(id => Q_BY_ID[id].testId === t.id), s = ids.filter(id => lastResult(id));
     const r = s.filter(id => lastResult(id).ok).length;
-    return { name: t.title.replace('&amp;','&'), seen: s.length, total: ids.length, right: r, pct: s.length ? Math.round(r / s.length * 100) : null };
+    return { name: t.title.replace('&amp;','&'), group: t.group, seen: s.length, total: ids.length, right: r, pct: s.length ? Math.round(r / s.length * 100) : null };
   });
   const topicCard = `<div class="card"><h3>By topic</h3><p class="sub2">Share of questions right on your latest try.</p>
-    ${topics.map(tp => `<div class="topic-row"><div>${tp.name}</div>
+    ${topics.map((tp, k) => `${k === 0 || topics[k-1].group !== tp.group ? `<div class="topic-row grp">${GROUPS.find(g => g.id === tp.group).name}</div>` : ''}<div class="topic-row"><div>${tp.name}</div>
       <div class="track" title="${tp.pct === null ? 'Not practiced yet' : tp.right + ' of ' + tp.seen + ' right'}"><div class="fill" style="width:${tp.pct || 0}%"></div></div>
       <div class="num">${tp.pct === null ? 'not started' : tp.pct + '% · ' + tp.right + '/' + tp.seen}</div></div>`).join('')}
   </div>`;
@@ -916,7 +936,7 @@ function renderReport(){
   </div>`;
 
   // Everything missed on the latest try, grouped by topic
-  const groups = TESTS.slice(0,4).map(t => ({ name: t.title.replace('&amp;','&'), ids: missedNow.filter(id => Q_BY_ID[id].testId === t.id) })).filter(g => g.ids.length);
+  const groups = SOURCE_TESTS.map(t => ({ name: t.title.replace('&amp;','&'), ids: missedNow.filter(id => Q_BY_ID[id].testId === t.id) })).filter(g => g.ids.length);
   const missCard = `<div class="card"><h3>Questions you missed</h3>
     ${groups.length ? `<p class="sub2">Wrong on your most recent try. Get one right in a test or quiz and it drops off this list.</p>
       ${groups.map(g => `<details class="missed-group"><summary>${g.name} (${g.ids.length})</summary>
@@ -940,7 +960,7 @@ function quizStudyList(){
 /* ---------- QUIZ MODE ---------- */
 // Question bank from the four topic tests (the combined exam reuses these, so it's excluded).
 const BANK = [];
-TESTS.slice(0,4).forEach(t => {
+SOURCE_TESTS.forEach(t => {
   let context = null;
   t.items.forEach((it, i) => {
     if(it.type === 'note'){ context = it.text; return; }
@@ -962,6 +982,7 @@ function setMode(m){
   document.getElementById('reportView').classList.toggle('hidden', m !== 'report');
   if(m === 'report') renderReport();
   document.getElementById('railCount').classList.toggle('hidden', m !== 'tests');
+  document.getElementById('groupBar').classList.toggle('hidden', m !== 'tests');
   if(m === 'quiz' && !quiz) renderQuizSetup();
   window.scrollTo({top:0});
 }
@@ -972,19 +993,22 @@ function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt
 function renderQuizSetup(){
   const v = document.getElementById('quizView');
   const missedCount = BANK.filter(q => missed[q.id]).length;
-  const topics = TESTS.slice(0,4).map(t => {
-    const n = BANK.filter(q => q.testId === t.id).length;
-    const h = attempts['quiz:' + t.id] || [];
-    const last = h.length ? ` · last ${h[h.length-1].pct}%` : '';
-    return `<label class="topic"><input type="checkbox" value="${t.id}" checked><span>${t.title}<small>${n} questions${last}</small></span></label>`;
-  }).join('');
+  const curGroup = TESTS[activeIdx].group;
+  const topics = GROUPS.map(g => `<div class="topic-group"><h4><input type="checkbox" class="grp-toggle" data-g="${g.id}" ${g.id === curGroup ? 'checked' : ''}>${g.name}</h4><div class="topic-grid">` +
+    SOURCE_TESTS.filter(t => t.group === g.id).map(t => {
+      const n = BANK.filter(q => q.testId === t.id).length;
+      const h = attempts['quiz:' + t.id] || [];
+      const last = h.length ? ` · last ${h[h.length-1].pct}%` : '';
+      return `<label class="topic"><input type="checkbox" data-g="${g.id}" value="${t.id}" ${g.id === curGroup ? 'checked' : ''}><span>${t.title}<small>${n} questions${last}</small></span></label>`;
+    }).join('') + '</div></div>').join('');
   const recent = Object.entries(attempts).filter(([k]) => k.startsWith('quiz:')).flatMap(([k, list]) => list.map(a => ({...a, k})))
     .sort((a,b) => b.at - a.at).slice(0,5);
   v.innerHTML = `
     <div class="card">
       <h2>Quiz Mode</h2>
       <p class="sub">One question at a time with instant feedback and rationales. Questions you miss are saved so you can drill them later.</p>
-      <div class="topic-grid">${topics}</div>
+      ${topics}
+      <div style="height:14px"></div>
       <div class="row">
         <label>Questions <select id="qzCount"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option><option value="999">All</option></select></label>
         <button class="primary" id="qzStart">Start quiz</button>
@@ -992,6 +1016,7 @@ function renderQuizSetup(){
       </div>
     </div>
     ${recent.length ? `<div class="card"><h2 style="font-size:17px">Recent quizzes</h2><ul class="missed-list">${recent.map(a => `<li>${new Date(a.at).toLocaleDateString()} — ${a.score}/${a.total} (${a.pct}%) · ${a.k === 'quiz:missed' ? 'Missed review' : a.k === 'quiz:study' ? 'Study plan' : a.k === 'quiz:mixed' ? 'Mixed topics' : ((TESTS.find(t => 'quiz:'+t.id === a.k)||{}).title || '')}</li>`).join('')}</ul></div>` : ''}`;
+  v.querySelectorAll('.grp-toggle').forEach(g => g.onchange = () => v.querySelectorAll(`.topic input[data-g="${g.dataset.g}"]`).forEach(x => x.checked = g.checked));
   document.getElementById('qzStart').onclick = () => {
     const ids = [...v.querySelectorAll('.topic input:checked')].map(x => x.value);
     if(!ids.length) return;

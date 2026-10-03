@@ -1,6 +1,6 @@
-# Pediatric NCLEX Prep
+# NCLEX Prep (Pediatrics & Maternity)
 
-Five pediatric NCLEX practice sets (musculoskeletal, integumentary, hematology/immunology/oncology, ENT & eye, plus a combined 50-item exam) with multiple-choice and select-all-that-apply questions and rationales.
+NCLEX-style practice sets built from course objectives: pediatric body systems (musculoskeletal, integumentary, hematology/immunology/oncology, ENT & eye), Exam 1 (genetics & newborn, professional nursing, growth & development, the hospitalized child) and Exam 2 (pregnancy, labor & birth, postpartum, family & community health).
 
 - **Practice Tests:** full tests with scoring, rationales and attempt history
 - **Quiz Mode:** one question at a time, shuffled, instant feedback, and a saved "Review missed" list
