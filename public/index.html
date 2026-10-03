@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pediatric NCLEX Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF3F2;
+  --paper:#FFFFFF;
+  --rail:#E3EAE8;
+  --ink:#172524;
+  --ink-soft:#4C5D5C;
+  --line:#D4DEDC;
+  --teal:#0F6E6E;
+  --teal-deep:#0A4F4F;
+  --teal-pale:#DCEEEC;
+  --brick:#B3431B;
+  --brick-pale:#FBE7DD;
+  --green:#2E7D4F;
+  --green-pale:#DFF0E4;
+  --amber:#8A6D1F;
+  --amber-pale:#F7EFD6;
+  --radius-card:10px;
+  --radius-chip:999px;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121918; --paper:#182221; --rail:#1C2726; --ink:#EAF1EF; --ink-soft:#9FB3B0;
+    --line:#2A3736; --teal:#3FBFB2; --teal-deep:#2E9B90; --teal-pale:#17302E;
+    --brick:#E08A5E; --brick-pale:#2E2019; --green:#6FCB95; --green-pale:#163024;
+    --amber:#E3C46B; --amber-pale:#2E280F;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121918; --paper:#182221; --rail:#1C2726; --ink:#EAF1EF; --ink-soft:#9FB3B0;
+  --line:#2A3736; --teal:#3FBFB2; --teal-deep:#2E9B90; --teal-pale:#17302E;
+  --brick:#E08A5E; --brick-pale:#2E2019; --green:#6FCB95; --green-pale:#163024;
+  --amber:#E3C46B; --amber-pale:#2E280F;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'IBM Plex Sans', system-ui, sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:'IBM Plex Serif', Georgia, serif; font-weight:600; margin:0;}
+.app{max-width:1040px; margin:0 auto; padding:28px 18px 120px;}
+.masthead{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+  border-bottom:3px solid var(--teal); padding-bottom:16px; margin-bottom:22px; flex-wrap:wrap;
+}
+.masthead h1{font-size:28px; color:var(--teal-deep); letter-spacing:-0.01em;}
+.masthead p{margin:4px 0 0; color:var(--ink-soft); font-size:14px; max-width:46ch;}
+.masthead-right{display:flex; align-items:center; gap:10px;}
+.chip-count{
+  font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--teal-deep);
+  background:var(--teal-pale); border-radius:var(--radius-chip); padding:5px 11px; white-space:nowrap;
+}
+.layout{display:grid; grid-template-columns:200px 1fr; gap:22px; align-items:start;}
+@media (max-width:760px){ .layout{grid-template-columns:1fr;} }
+
+.rail{
+  background:var(--rail); border-radius:var(--radius-card); padding:10px; position:sticky; top:10px;
+  display:flex; flex-direction:column; gap:4px;
+}
+@media (max-width:760px){
+  .rail{position:static; flex-direction:row; overflow-x:auto; gap:8px; padding:8px;}
+}
+.rail button{
+  all:unset; cursor:pointer; padding:11px 12px; border-radius:7px; font-size:13.5px; line-height:1.3;
+  color:var(--ink-soft); border-left:3px solid transparent;
+}
+@media (max-width:760px){
+  .rail button{border-left:none; border-bottom:3px solid transparent; white-space:nowrap; flex:0 0 auto;}
+}
+.rail button .n{display:block; font-family:'IBM Plex Mono',monospace; font-size:10.5px; opacity:.75; margin-bottom:2px;}
+.rail button:hover{background:var(--paper); color:var(--ink);}
+.rail button.active{background:var(--paper); color:var(--teal-deep); border-left-color:var(--teal); font-weight:600;}
+@media (max-width:760px){ .rail button.active{border-bottom-color:var(--teal);} }
+
+.panel{min-width:0;}
+.intro-card{
+  background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-card);
+  padding:20px 22px; margin-bottom:18px;
+}
+.intro-card h2{font-size:21px; color:var(--teal-deep); margin-bottom:6px;}
+.intro-card .meta{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); margin-bottom:10px;}
+.intro-card p{margin:0; color:var(--ink-soft); font-size:14px; line-height:1.55; max-width:62ch;}
+
+.score-banner{
+  border-radius:var(--radius-card); padding:18px 22px; margin-bottom:18px; display:none;
+  border:1px solid var(--line);
+}
+.score-banner.show{display:block;}
+.score-banner .big{font-family:'IBM Plex Serif',serif; font-size:32px; font-weight:700;}
+.score-banner .sub{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+
+.note{
+  background:var(--amber-pale); border:1px solid var(--line); border-left:4px solid var(--amber);
+  border-radius:8px; padding:14px 16px; margin:18px 0 14px; font-size:13.5px; line-height:1.55; color:var(--ink);
+}
+.note .label{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--amber); display:block; margin-bottom:5px;}
+
+.q{
+  background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--line);
+  border-radius:var(--radius-card); padding:16px 18px; margin-bottom:12px; scroll-margin-top:14px;
+  transition:border-color .2s ease;
+}
+.q.correct{border-left-color:var(--green);}
+.q.incorrect{border-left-color:var(--brick);}
+.q-head{display:flex; align-items:baseline; gap:10px; margin-bottom:9px;}
+.q-num{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--teal-deep); flex:0 0 auto;}
+.q-type{
+  font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.03em; padding:2px 7px;
+  border-radius:var(--radius-chip); background:var(--teal-pale); color:var(--teal-deep); flex:0 0 auto;
+}
+.q-type.sata{background:var(--brick-pale); color:var(--brick);}
+.q-prompt{font-size:15px; line-height:1.5; margin:0;}
+.q-sata-hint{font-size:11.5px; color:var(--ink-soft); font-style:italic; margin:4px 0 0;}
+
+.opts{margin-top:12px; display:flex; flex-direction:column; gap:7px;}
+.opt{
+  display:flex; align-items:flex-start; gap:10px; padding:9px 11px; border-radius:7px;
+  border:1px solid var(--line); cursor:pointer; font-size:14px; line-height:1.4;
+}
+.opt:hover{background:var(--teal-pale);}
+.opt input{margin-top:2px; accent-color:var(--teal); flex:0 0 auto; width:16px; height:16px;}
+.opt .key{font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--teal-deep); flex:0 0 auto;}
+.q.locked .opt{cursor:default;}
+.q.locked .opt:hover{background:none;}
+.opt.is-correct{background:var(--green-pale); border-color:var(--green);}
+.opt.is-wrong{background:var(--brick-pale); border-color:var(--brick);}
+
+.rationale{
+  display:none; margin-top:12px; padding:11px 13px; background:var(--teal-pale);
+  border-radius:7px; font-size:13.5px; line-height:1.55; color:var(--ink);
+}
+.rationale .label{font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--teal-deep); display:block; margin-bottom:4px;}
+.q.locked .rationale{display:block;}
+
+.footer-bar{
+  position:fixed; left:0; right:0; bottom:0; background:var(--paper); border-top:1px solid var(--line);
+  padding:12px 18px calc(12px + env(safe-area-inset-bottom, 0px));
+  display:flex; align-items:center; justify-content:space-between; gap:14px; z-index:10;
+}
+.footer-inner{max-width:1040px; margin:0 auto; width:100%; display:flex; align-items:center; justify-content:space-between; gap:14px;}
+.progress-text{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); white-space:nowrap;}
+.btn-group{display:flex; gap:10px;}
+button.primary, button.ghost{
+  font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:13.5px; border-radius:7px;
+  padding:10px 18px; cursor:pointer; border:1px solid transparent;
+}
+button.primary{background:var(--teal-deep); color:#fff;}
+button.primary:disabled{background:var(--line); color:var(--ink-soft); cursor:not-allowed;}
+button.ghost{background:transparent; color:var(--ink-soft); border-color:var(--line);}
+button.ghost:hover{color:var(--ink); border-color:var(--ink-soft);}
+.auth{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-soft);}
+.auth img{width:26px; height:26px; border-radius:50%;}
+.auth .sync{font-family:'IBM Plex Mono',monospace; font-size:11px;}
+.auth button{font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:12.5px; border-radius:7px; padding:7px 12px; cursor:pointer; border:1px solid var(--line); background:var(--paper); color:var(--ink);}
+.auth button.signin{background:var(--teal-deep); color:#fff; border-color:transparent;}
+.history{margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--teal-deep);}
+.modes{display:inline-flex; background:var(--rail); border-radius:9px; padding:4px; gap:4px; margin-bottom:18px;}
+.modes button{all:unset; cursor:pointer; padding:8px 16px; border-radius:6px; font-weight:600; font-size:13.5px; color:var(--ink-soft);}
+.modes button.active{background:var(--paper); color:var(--teal-deep); box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.hidden{display:none !important;}
+.quiz-wrap{max-width:720px; margin:0 auto;}
+.card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-card); padding:20px 22px; margin-bottom:14px;}
+.card h2{font-size:21px; color:var(--teal-deep); margin-bottom:6px;}
+.card p.sub{margin:0 0 14px; color:var(--ink-soft); font-size:14px; line-height:1.5;}
+.topic-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; margin:10px 0 16px;}
+.topic{display:flex; gap:9px; align-items:flex-start; border:1px solid var(--line); border-radius:8px; padding:10px 12px; cursor:pointer; font-size:13.5px; line-height:1.35;}
+.topic input{accent-color:var(--teal); margin-top:2px;}
+.topic small{display:block; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:11px; margin-top:2px;}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.row label{font-size:13.5px; color:var(--ink-soft); display:flex; gap:6px; align-items:center;}
+.row select{font:inherit; padding:7px 9px; border-radius:7px; border:1px solid var(--line); background:var(--paper); color:var(--ink);}
+.bar{height:6px; background:var(--rail); border-radius:99px; overflow:hidden; margin:4px 0 14px;}
+.bar > i{display:block; height:100%; background:var(--teal); transition:width .25s ease;}
+.quiz-top{display:flex; justify-content:space-between; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);}
+.feedback{margin-top:12px; padding:10px 13px; border-radius:7px; font-weight:600; font-size:14px;}
+.feedback.ok{background:var(--green-pale); color:var(--green);}
+.feedback.bad{background:var(--brick-pale); color:var(--brick);}
+.quiz .rationale{display:block;}
+.missed-list{margin:10px 0 0; padding-left:18px; font-size:13.5px; line-height:1.5; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="masthead">
+    <div>
+      <h1>Pediatric NCLEX Prep</h1>
+      <p>Five practice sets built from your course objectives — musculoskeletal, integumentary, hematology/immunology/oncology, ENT &amp; eye, plus a combined 50-item exam.</p>
+    </div>
+    <div class="masthead-right">
+      <span class="chip-count" id="railCount"></span>
+      <div class="auth" id="auth"><span class="sync">Loading…</span></div>
+    </div>
+  </div>
+
+  <div class="modes" id="modes">
+    <button data-mode="tests" class="active">Practice Tests</button>
+    <button data-mode="quiz">Quiz Mode</button>
+  </div>
+
+  <div id="quizView" class="quiz-wrap hidden"></div>
+
+  <div class="layout" id="testsView">
+    <nav class="rail" id="rail"></nav>
+    <div class="panel">
+      <div class="intro-card" id="introCard"></div>
+      <div class="score-banner" id="scoreBanner"></div>
+      <div id="noteTop"></div>
+      <div id="qList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-bar" id="footerBar">
+  <div class="footer-inner">
+    <span class="progress-text" id="progressText">0 of 0 answered</span>
+    <div class="btn-group">
+      <button class="ghost" id="resetBtn">Reset</button>
+      <button class="primary" id="submitBtn">Submit Test</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+const TESTS = [
+{
+  id:'t1', tab:'Test 1', title:'Musculoskeletal Disorders',
+  desc:'Casting, compartment syndrome, traction, fixation, DDH, OI, clubfoot, SCFE, Legg-Calve-Perthes, osteomyelitis, septic arthritis, scoliosis, fractures, overuse syndromes, radial head subluxation.',
+  items:[
+    {type:'mc', prompt:"A 4-year-old has a new long-leg cast applied for a femur fracture. Which finding requires the nurse to notify the provider immediately?",
+      options:[['A','Toes are warm and pink'],['B','Capillary refill of 2 seconds'],['C','Increasing pain unrelieved by medication and pain with passive stretch'],['D','Mild itching reported under the cast edge']],
+      correct:['C'], rationale:"Pain unrelieved by medication and pain with passive stretch are hallmark early signs of compartment syndrome, a limb-threatening emergency requiring immediate provider notification."},
+    {type:'mc', prompt:"The nurse is caring for a child in skeletal traction. Which action is appropriate?",
+      options:[['A','Remove weights when repositioning the child for comfort'],['B','Ensure weights hang freely and are not resting on the floor'],['C','Release the traction ropes during linen changes'],['D','Elevate the foot of the bed above the head of the bed for all traction types']],
+      correct:['B'], rationale:"Traction weights must hang freely at all times to maintain the correct pulling force; they should never rest on the floor, bed, or be removed without a provider order."},
+    {type:'mc', prompt:"A newborn is diagnosed with developmental dysplasia of the hip (DDH). Which assessment finding supports this diagnosis?",
+      options:[['A','Symmetric gluteal folds'],['B','Negative Ortolani sign'],['C','Limited abduction of the affected hip'],['D','Equal leg lengths bilaterally']],
+      correct:['C'], rationale:"Limited abduction of the affected hip is a classic finding in DDH; asymmetric gluteal folds and a positive Ortolani/Barlow sign are also expected."},
+    {type:'mc', prompt:"A child with osteogenesis imperfecta (OI) is admitted for a fracture. Which nursing action is a priority?",
+      options:[['A','Encourage vigorous range-of-motion exercises'],['B','Use extreme caution when lifting, moving, and positioning the child'],['C','Apply firm pressure when taking blood pressure readings'],['D','Encourage high-impact play to build bone density']],
+      correct:['B'], rationale:"Children with OI have extremely fragile bones (\"brittle bone disease\") and require gentle handling; even routine care (like BP cuffs) can cause fractures if not done carefully."},
+    {type:'mc', prompt:"Which statement by a parent indicates understanding of clubfoot (talipes equinovarus) treatment using the Ponseti method?",
+      options:[['A','"Surgery is always the first step in treatment."'],['B','"The cast will be changed weekly, and a brace will be worn after correction, often into early childhood."'],['C','"Bracing stops as soon as the cast is removed."'],['D','"This condition will resolve on its own without treatment."']],
+      correct:['B'], rationale:"The Ponseti method involves serial weekly casting followed by long-term bracing (often full-time initially, then nighttime/naptime) to maintain correction and prevent relapse, often into early childhood."},
+    {type:'mc', prompt:"A 12-year-old presents with a limp and hip/knee pain after minor trauma; the provider suspects slipped capital femoral epiphysis (SCFE). Which action should the nurse take first?",
+      options:[['A','Encourage the child to walk to assess gait'],['B','Place the child on non-weight-bearing status and notify the provider'],['C','Apply heat to the hip'],['D','Administer a full dose of ibuprofen and discharge home']],
+      correct:['B'], rationale:"SCFE is an orthopedic emergency; the child should be made non-weight-bearing immediately to prevent further slippage of the femoral epiphysis, and the provider notified."},
+    {type:'mc', prompt:"The nurse assesses a child with suspected compartment syndrome after a fracture. Which of the \"6 P's\" is an early and most reliable indicator?",
+      options:[['A','Paralysis'],['B','Pulselessness'],['C','Pain out of proportion to injury and unrelieved by analgesics'],['D','Poikilothermia']],
+      correct:['C'], rationale:"Pain out of proportion to the injury and pain with passive stretch is the earliest and most sensitive indicator of compartment syndrome; pulselessness and paralysis are late, ominous signs."},
+    {type:'mc', prompt:"A child with osteomyelitis is prescribed long-term IV antibiotics. Which nursing consideration is most important for discharge planning?",
+      options:[['A','Antibiotics can be stopped once the child is afebrile for 24 hours'],['B','IV access (e.g., PICC line) will likely be needed for weeks of home therapy'],['C','Oral antibiotics are always preferred over IV in acute osteomyelitis'],['D','No follow-up laboratory monitoring is required']],
+      correct:['B'], rationale:"Osteomyelitis typically requires prolonged (often weeks) of IV antibiotic therapy, frequently continued at home via a PICC line, requiring family education on line care."},
+    {type:'mc', prompt:"Which finding in an infant is most consistent with congenital torticollis?",
+      options:[['A','Head tilted toward the affected side with chin rotated to the opposite shoulder'],['B','Full, symmetric range of motion of the neck'],['C','Head held midline at all times'],['D','Absence of a palpable neck mass']],
+      correct:['A'], rationale:"Congenital torticollis presents with the head tilted toward the affected (shortened) sternocleidomastoid muscle and the chin rotated to the opposite side, often with a palpable mass in the muscle."},
+    {type:'mc', prompt:"A child is diagnosed with Legg-Calve-Perthes disease. Which teaching point is most appropriate?",
+      options:[['A','"This is caused by an infection and requires antibiotics."'],['B','"This involves disrupted blood supply to the femoral head, and treatment focuses on containing the femoral head within the acetabulum."'],['C','"Weight-bearing activity should be encouraged to strengthen the hip."'],['D','"This condition primarily affects the spine."']],
+      correct:['B'], rationale:"Legg-Calve-Perthes disease involves avascular necrosis of the femoral head due to disrupted blood supply; treatment focuses on containment (bracing, casting, or surgery) to preserve the round shape of the femoral head, with weight-bearing restrictions."},
+    {type:'sata', prompt:"A nurse is providing cast care education to the parent of a school-age child. Select all instructions that are appropriate.",
+      options:[['A','Keep the cast dry'],['B','Use a hair dryer on the cool setting for itching, not objects inserted inside the cast'],['C','Elevate the extremity above heart level for the first 24\u201348 hours'],['D','Cover the cast with plastic during bathing'],['E','Notify the provider for foul odor or drainage from the cast'],['F','It is safe to insert a pencil or coat hanger to scratch under the cast']],
+      correct:['A','B','C','E'], rationale:"Keep casts dry, use cool-setting hair dryer for itch (never insert objects), elevate the extremity to reduce swelling, and report foul odor/drainage (signs of infection). Covering with plastic for full submersion bathing is not sufficient protection, and inserting objects can cause skin breakdown/injury."},
+    {type:'sata', prompt:"Which findings are consistent with septic arthritis in a child?",
+      options:[['A','Low-grade or absent fever'],['B','Warmth, swelling, and severe pain over the affected joint'],['C','Refusal to bear weight or move the limb (pseudoparalysis)'],['D','Elevated WBC, ESR, and CRP'],['E','Painless range of motion'],['F','Requires prompt joint aspiration and IV antibiotics']],
+      correct:['B','C','D','F'], rationale:"Septic arthritis presents with fever, marked warmth/swelling/pain, refusal to move the joint, and elevated inflammatory markers; it requires urgent joint aspiration and IV antibiotics. Low/absent fever and painless motion are not typical."},
+    {type:'sata', prompt:"A toddler presents with sudden refusal to use one arm after being swung by the hands (\"nursemaid's elbow\" / radial head subluxation). Select all findings/interventions that apply.",
+      options:[['A','Arm held slightly flexed and pronated at the side'],['B','Visible deformity and bruising are typically present'],['C','Reduction is often performed by the provider via supination/flexion technique'],['D','Child typically resumes normal arm use quickly after reduction'],['E','X-ray is always required before reduction'],['F','Recurrence is possible, and caregivers should avoid pulling on the child\u2019s arms/hands']],
+      correct:['A','C','D','F'], rationale:"Nursemaid's elbow presents with the arm held flexed/pronated, no visible deformity, and is reduced via a supination-flexion (or hyperpronation) maneuver; the child typically uses the arm normally within minutes. X-rays are not always needed if presentation is classic, and recurrence is common, so caregivers are taught to avoid pulling/swinging by the hands."},
+    {type:'sata', prompt:"Which are risk factors or features of rickets?",
+      options:[['A','Vitamin D deficiency'],['B','Bowing of the legs'],['C','Delayed closure of fontanels'],['D','Excess vitamin D intake only'],['E','Widening of the wrists'],['F','Exclusively breastfed infants without vitamin D supplementation are at higher risk']],
+      correct:['A','B','C','E','F'], rationale:"Rickets results from vitamin D (and sometimes calcium/phosphorus) deficiency, causing bowed legs, delayed fontanel closure, and widened wrists; exclusively breastfed infants without vitamin D supplementation are at increased risk. Excess vitamin D is not a cause of rickets."},
+    {type:'note', text:"Case Study: A 7-year-old is brought to the ED after falling off a bike. The right forearm is deformed, swollen, and the child reports 9/10 pain. A cast is applied after closed reduction of a forearm fracture. Four hours later, the child reports severe pain unrelieved by the ordered opioid, and the fingers are pale and cool with delayed capillary refill."},
+    {type:'mc', prompt:"What is the priority nursing action?",
+      options:[['A','Administer another dose of the same opioid and reassess in 1 hour'],['B','Elevate the arm above the heart and apply ice'],['C','Notify the provider immediately of signs suggestive of compartment syndrome'],['D','Document the finding and reassess at the next scheduled vital signs']],
+      correct:['C'], rationale:"Pain unrelieved by opioids plus pallor/coolness/delayed capillary refill are signs of compartment syndrome; this requires immediate provider notification, not repeated dosing or delay."},
+    {type:'sata', prompt:"Which of the following are appropriate ongoing nursing assessments for this child?",
+      options:[['A','Assess the 6 P\u2019s every 1\u20132 hours or per protocol'],['B','Check capillary refill, color, temperature, and sensation of the fingers'],['C','Loosen or bivalve the cast if ordered by the provider'],['D','Delay reassessment until the next shift'],['E','Monitor for increasing pressure/tightness of the cast']],
+      correct:['A','B','C','E'], rationale:"Frequent neurovascular checks, monitoring the 6 P's, and cast loosening/bivalving (per order) are appropriate; delaying reassessment is inappropriate given the acuity."},
+    {type:'note', text:"Case Study: A 15-year-old female athlete reports several weeks of gradually worsening shin pain that worsens with running and improves with rest. She has no history of trauma. X-ray shows no fracture."},
+    {type:'mc', prompt:"This presentation is most consistent with which condition category?",
+      options:[['A','Septic arthritis'],['B','An overuse syndrome (e.g., stress reaction/shin splints)'],['C','Osteogenesis imperfecta'],['D','Slipped capital femoral epiphysis']],
+      correct:['B'], rationale:"Gradual onset of pain with activity, relief with rest, and no trauma/fracture on imaging is classic for an overuse injury such as a stress reaction/shin splints, common in adolescent athletes."}
+  ]
+},
+{
+  id:'t2', tab:'Test 2', title:'Integumentary / Skin Disorders',
+  desc:'Skin structure in childhood, primary/secondary lesions, burns, bacterial & fungal infections, bites/stings, inflammatory and irritant conditions.',
+  items:[
+    {type:'mc', prompt:"Compared to adult skin, a key characteristic of an infant's skin is:",
+      options:[['A','Thicker epidermis with reduced permeability'],['B','Thinner epidermis, making it more permeable and prone to fluid loss and toxin absorption'],['C','Decreased surface-area-to-body-weight ratio'],['D','Identical thermoregulation ability to adults']],
+      correct:['B'], rationale:"Infant skin is thinner, less keratinized, and more permeable than adult skin, increasing risk for fluid loss, temperature instability, and systemic absorption of topical substances."},
+    {type:'mc', prompt:"A child presents with honey-colored, crusted lesions around the mouth. This is most consistent with:",
+      options:[['A','Tinea corporis'],['B','Impetigo'],['C','Eczema'],['D','Contact dermatitis']],
+      correct:['B'], rationale:"Honey-colored crusted lesions are the classic presentation of impetigo, a superficial bacterial skin infection (often staph or strep)."},
+    {type:'mc', prompt:"Staphylococcal scalded skin syndrome (SSSS) in an infant is characterized by:",
+      options:[['A','Localized honey-crusted lesions only'],['B','Widespread erythema with skin that sloughs off in sheets, positive Nikolsky sign'],['C','Small, itchy fluid-filled vesicles in a linear pattern'],['D','Thick, silvery scaling plaques']],
+      correct:['B'], rationale:"SSSS is caused by staphylococcal exotoxins and presents with widespread erythema and sheet-like skin sloughing, with a positive Nikolsky sign (skin separates with gentle lateral pressure)."},
+    {type:'mc', prompt:"Which statement about CA-MRSA skin infections is accurate?",
+      options:[['A','CA-MRSA infections never require incision and drainage'],['B','CA-MRSA should always be treated with a first-generation cephalosporin'],['C','Culture and sensitivity testing guides antibiotic selection because CA-MRSA is resistant to many beta-lactam antibiotics'],['D','CA-MRSA cannot spread between household contacts']],
+      correct:['C'], rationale:"Because CA-MRSA is resistant to many beta-lactam antibiotics, culture and sensitivity testing is important to guide effective antibiotic therapy; incision and drainage is often needed for abscesses."},
+    {type:'mc', prompt:"A school-age child has a round, scaly patch with central clearing on the scalp with associated hair loss. The nurse suspects:",
+      options:[['A','Tinea capitis'],['B','Cellulitis'],['C','Seborrheic dermatitis'],['D','Urticaria']],
+      correct:['A'], rationale:"Tinea capitis is a fungal scalp infection presenting with scaly patches, hair loss/breakage, and sometimes a ring-like appearance."},
+    {type:'mc', prompt:"Which teaching is most appropriate for a parent whose child has tinea corporis (ringworm)?",
+      options:[['A','"This is caused by bacteria and requires an antibiotic ointment."'],['B','"This is a fungal infection; apply the prescribed antifungal and avoid sharing towels or clothing."'],['C','"This is highly contagious and always requires oral steroids."'],['D','"No treatment is needed since it will resolve without intervention."']],
+      correct:['B'], rationale:"Tinea corporis is a fungal infection treated with topical (or sometimes oral) antifungals; it can spread via shared items, so hygiene teaching is important."},
+    {type:'mc', prompt:"A toddler is stung by a bee. Which finding would indicate an emergency requiring immediate intervention?",
+      options:[['A','Localized redness and swelling at the sting site'],['B','Mild itching at the site'],['C','Facial/lip swelling, difficulty breathing, and hives spreading over the body'],['D','A small welt that resolves within an hour']],
+      correct:['C'], rationale:"Facial/lip swelling, difficulty breathing, and widespread hives after a sting suggest anaphylaxis, a life-threatening emergency requiring immediate intervention (epinephrine, emergency care)."},
+    {type:'mc', prompt:"Using the \"Rule of Nines\" adapted for children, which statement is accurate regarding burn assessment in infants/young children?",
+      options:[['A','The head and neck represent a smaller percentage of total body surface area (TBSA) compared to adults'],['B','The head represents a proportionally larger percentage of TBSA in infants/young children compared to adults'],['C','Burn percentage calculations are identical for infants, children, and adults'],['D','Leg TBSA percentage is higher in infants than in adults']],
+      correct:['B'], rationale:"In infants and young children, the head is proportionally larger relative to total body surface area, so pediatric burn charts (e.g., Lund-Browder) adjust percentages accordingly, unlike the adult Rule of Nines."},
+    {type:'mc', prompt:"Which finding is most consistent with a partial-thickness (second-degree) burn?",
+      options:[['A','Skin is white, leathery, and painless'],['B','Skin is red, blistered, moist, and very painful'],['C','Only the outer epidermis is affected with no blistering (like sunburn)'],['D','Full-thickness charring of skin and underlying tissue']],
+      correct:['B'], rationale:"Partial-thickness burns involve the epidermis and part of the dermis, presenting as red, blistered, moist, and very painful (nerve endings are intact/exposed)."},
+    {type:'mc', prompt:"A parent asks about diaper dermatitis prevention. Which response is best?",
+      options:[['A','"Change diapers frequently and allow air-drying time when possible."'],['B','"Use tightly fitting diapers to prevent leakage."'],['C','"Apply alcohol-based wipes with every change."'],['D','"Diaper rash is not preventable."']],
+      correct:['A'], rationale:"Frequent diaper changes and allowing air-drying time reduce prolonged moisture/friction exposure, which helps prevent diaper dermatitis; tight diapers and irritating wipes can worsen it."},
+    {type:'sata', prompt:"The nurse is teaching a caregiver about atopic dermatitis (eczema) management. Select all appropriate instructions.",
+      options:[['A','Apply moisturizer liberally and frequently, especially after bathing'],['B','Use lukewarm (not hot) water for bathing'],['C','Keep the child\u2019s fingernails short to reduce skin damage from scratching'],['D','Use harsh, fragranced soaps to ensure the skin is clean'],['E','Identify and avoid known triggers (e.g., certain fabrics, allergens)'],['F','Apply topical corticosteroids as prescribed during flares']],
+      correct:['A','B','C','E','F'], rationale:"Eczema management includes frequent moisturizing, lukewarm baths, short nails, trigger avoidance, and prescribed topical corticosteroids during flares. Harsh, fragranced soaps can worsen eczema and should be avoided."},
+    {type:'sata', prompt:"Which of the following are classified as primary skin lesions?",
+      options:[['A','Macule'],['B','Scale'],['C','Papule'],['D','Vesicle'],['E','Crust'],['F','Wheal']],
+      correct:['A','C','D','F'], rationale:"Macules, papules, vesicles, and wheals are primary lesions (arise directly from disease process). Scale and crust are secondary lesions (result from changes to primary lesions, e.g., healing/trauma)."},
+    {type:'sata', prompt:"Which factors increase a child's risk for burn injury or affect burn severity assessment in pediatrics?",
+      options:[['A','Thinner skin leading to deeper burns at lower temperatures/shorter exposure'],['B','Larger body surface area relative to weight, increasing risk of fluid/heat loss'],['C','Curious, mobile toddlers exploring hot surfaces/liquids'],['D','Children have the same pain tolerance thresholds and reporting ability as adults'],['E','Immature immune system increasing infection risk at burn sites'],['F','Scalds from hot liquids are a common mechanism of burn injury in young children']],
+      correct:['A','B','C','E','F'], rationale:"Thinner skin, larger surface-area-to-weight ratio, toddler curiosity/mobility, immature immune response, and scald exposure all increase pediatric burn risk/severity. Children do not have the same pain reporting/tolerance abilities as adults (developmentally dependent)."},
+    {type:'note', text:"Case Study: A 2-year-old is brought to the ED after pulling a pot of hot coffee off the counter, spilling it on the chest and arm. The skin is red, blistered, weeping, and the child is crying and reports significant pain when the area is touched."},
+    {type:'mc', prompt:"Based on the description, this burn is best classified as:",
+      options:[['A','Superficial (first-degree)'],['B','Partial-thickness (second-degree)'],['C','Full-thickness (third-degree)'],['D','Cannot be determined without biopsy']],
+      correct:['B'], rationale:"Red, blistered, weeping, and very painful skin describes a partial-thickness (second-degree) burn."},
+    {type:'sata', prompt:"Which nursing interventions are appropriate in the initial management of this child?",
+      options:[['A','Cool (not ice-cold) water or saline to the burn briefly, then cover with a clean, dry dressing'],['B','Apply ice directly to the burn for 20 minutes'],['C','Assess and manage pain proactively'],['D','Monitor for signs of infection during follow-up care'],['E','Assess total body surface area involved using an age-appropriate chart'],['F','Apply butter or home remedies to the burn']],
+      correct:['A','C','D','E'], rationale:"Cool (not ice-cold) water/saline followed by a clean dry dressing, proactive pain management, TBSA assessment, and infection monitoring are appropriate. Ice and home remedies like butter can worsen tissue damage and should be avoided."},
+    {type:'note', text:"Case Study: A 6-year-old with known eczema develops a new area of honey-colored crusting and oozing over a previously excoriated patch on the arm, with mild surrounding redness. The child has been scratching frequently."},
+    {type:'mc', prompt:"This presentation most likely represents:",
+      options:[['A','Worsening eczema alone with no other process'],['B','Secondary bacterial infection (impetigo) superimposed on eczema'],['C','Tinea corporis'],['D','An allergic contact reaction only']],
+      correct:['B'], rationale:"New honey-colored crusting/oozing over a scratched eczema patch suggests secondary bacterial infection (impetigo), a common complication of eczema due to skin barrier breakdown from scratching."},
+    {type:'sata', prompt:"Which nursing actions/teaching points are appropriate for this child?",
+      options:[['A','Notify the provider; a topical or oral antibiotic may be needed'],['B','Continue eczema skin care (moisturizing, trigger avoidance) alongside treatment of the infection'],['C','Keep nails trimmed short and consider strategies to reduce scratching'],['D','No treatment is needed since impetigo always resolves on its own'],['E','Educate on hand hygiene and avoiding sharing towels to prevent spread']],
+      correct:['A','B','C','E'], rationale:"Provider notification for possible antibiotic therapy, continued eczema care, minimizing scratching, and hygiene teaching to prevent spread are all appropriate. Impetigo often requires treatment and is not something to leave untreated, especially with a compromised skin barrier."}
+  ]
+},
+{
+  id:'t3', tab:'Test 3', title:'Hematology, Immunology &amp; Oncology',
+  desc:'Hemophilia, sickle cell disease, iron deficiency anemia, lead poisoning, HIV, JIA, allergies/anaphylaxis, leukemia, lymphoma, brain tumor, Wilms\u2019 tumor, neutropenic precautions.',
+  items:[
+    {type:'mc', prompt:"A child with sickle cell disease is admitted in vaso-occlusive (pain) crisis. Which intervention is a priority?",
+      options:[['A','Restrict oral and IV fluids'],['B','Apply cold compresses to painful areas'],['C','Administer scheduled/around-the-clock analgesia and IV hydration'],['D','Encourage strenuous activity to improve circulation']],
+      correct:['C'], rationale:"Vaso-occlusive crisis management prioritizes aggressive pain control (often around-the-clock, sometimes with PCA) and IV hydration to reduce blood viscosity and improve perfusion; fluids should not be restricted."},
+    {type:'mc', prompt:"A child with hemophilia A falls and develops a swollen, painful knee joint (hemarthrosis). The priority nursing action is:",
+      options:[['A','Encourage immediate weight-bearing to prevent stiffness'],['B','Apply ice, elevate and immobilize the joint, and prepare to administer factor VIII replacement'],['C','Apply heat to the joint'],['D','Administer aspirin for pain relief']],
+      correct:['B'], rationale:"Hemarthrosis in hemophilia is managed with RICE (rest, ice, compression/immobilization, elevation) and factor replacement therapy; aspirin is avoided because it impairs platelet function."},
+    {type:'mc', prompt:"Which lab finding is most consistent with iron deficiency anemia?",
+      options:[['A','Elevated hemoglobin and hematocrit'],['B','Microcytic, hypochromic red blood cells with low ferritin'],['C','Macrocytic red blood cells'],['D','Elevated reticulocyte count only']],
+      correct:['B'], rationale:"Iron deficiency anemia classically presents with microcytic, hypochromic RBCs and low ferritin (reflecting depleted iron stores), along with low hemoglobin/hematocrit."},
+    {type:'mc', prompt:"A toddler is found to have an elevated blood lead level. Which is the priority nursing action?",
+      options:[['A','Reassure the family that lead levels are not a concern in toddlers'],['B','Identify and eliminate the source of lead exposure in the home environment'],['C','Administer iron supplements only'],['D','No follow-up testing is needed']],
+      correct:['B'], rationale:"The priority is identifying and removing the source of ongoing lead exposure (e.g., lead paint, contaminated water) to prevent further absorption and neurologic damage."},
+    {type:'mc', prompt:"A child with HIV is being taught about infection prevention. Which statement by the caregiver indicates a need for further teaching?",
+      options:[['A','"We will keep up with all recommended immunizations as advised by the provider."'],['B','"We should avoid exposing the child to people who are actively sick."'],['C','"Since the immune system is affected, live vaccines may need to be avoided or given only under specific guidance."'],['D','"The child no longer needs regular follow-up with the provider once treatment starts."']],
+      correct:['D'], rationale:"This statement indicates a need for further teaching; children with HIV require ongoing, regular follow-up (viral load, CD4 counts, medication adherence monitoring) even while on treatment."},
+    {type:'mc', prompt:"Which is a classic early sign of juvenile idiopathic arthritis (JIA)?",
+      options:[['A','Joint pain that improves throughout the day with morning stiffness'],['B','Fever with no joint involvement'],['C','Symmetric rash only, without joint symptoms'],['D','Painless joint swelling that resolves without treatment']],
+      correct:['A'], rationale:"JIA classically presents with morning stiffness that improves with activity throughout the day, along with joint swelling/pain, and may include systemic features like fever and rash."},
+    {type:'mc', prompt:"A child develops hives, facial swelling, wheezing, and hypotension after eating peanuts. The priority nursing action is:",
+      options:[['A','Administer oral diphenhydramine and observe'],['B','Administer intramuscular epinephrine immediately and call for emergency assistance'],['C','Give the child water and monitor for 30 minutes'],['D','Apply a cool compress to the face']],
+      correct:['B'], rationale:"Signs of anaphylaxis (hives, facial swelling, wheezing, hypotension) require immediate IM epinephrine as first-line treatment, followed by emergency services activation; antihistamines alone are insufficient."},
+    {type:'mc', prompt:"Which finding is most concerning in a child receiving chemotherapy who is now neutropenic?",
+      options:[['A','Temperature of 101.5\u00b0F (38.6\u00b0C)'],['B','Mild fatigue'],['C','Slightly decreased appetite'],['D','Normal white blood cell count']],
+      correct:['A'], rationale:"A fever of 101.5\u00b0F (38.6\u00b0C) or higher in a neutropenic patient is a medical emergency (febrile neutropenia) due to high infection risk with minimal immune defense."},
+    {type:'mc', prompt:"A child is diagnosed with acute lymphoblastic leukemia (ALL). Which clinical findings would the nurse expect?",
+      options:[['A','Elevated hemoglobin, decreased WBC, and increased platelets'],['B','Pallor, fatigue, bruising/petechiae, bone pain, and fever'],['C','Isolated hearing loss with no other symptoms'],['D','Symptoms limited to gastrointestinal complaints only']],
+      correct:['B'], rationale:"ALL classically presents with pallor/fatigue (anemia), bruising/petechiae/bleeding (thrombocytopenia), bone pain (marrow infiltration), and fever/infection risk."},
+    {type:'mc', prompt:"A parent reports finding a painless abdominal mass while bathing their child, who is otherwise well-appearing. The nurse should recognize this as a classic presentation of:",
+      options:[['A','Wilms\u2019 tumor (nephroblastoma) and should advise against abdominal palpation by multiple examiners'],['B','Normal toddler anatomy requiring no follow-up'],['C','Appendicitis'],['D','A viral illness']],
+      correct:['A'], rationale:"A painless abdominal mass in an otherwise well child is the classic presentation of Wilms\u2019 tumor; the abdomen should not be palpated repeatedly by multiple examiners due to risk of tumor rupture/seeding."},
+    {type:'sata', prompt:"The nurse is caring for a child with sickle cell disease. Select all appropriate nursing interventions/education points.",
+      options:[['A','Encourage adequate hydration'],['B','Teach the family to recognize signs of splenic sequestration and acute chest syndrome'],['C','Encourage exposure to extreme cold and high altitudes'],['D','Ensure up-to-date immunizations, including pneumococcal vaccine'],['E','Promote pain management during vaso-occlusive crises'],['F','Encourage adequate rest and avoidance of overexertion/dehydration triggers']],
+      correct:['A','B','D','E','F'], rationale:"Hydration, recognizing complications (splenic sequestration, acute chest syndrome), immunizations (especially pneumococcal, given functional asplenia risk), pain management, and avoiding triggers are all appropriate. Extreme cold/high altitude should be avoided, not encouraged, as they can precipitate crises."},
+    {type:'sata', prompt:"Which are appropriate neutropenic precautions for a child undergoing chemotherapy?",
+      options:[['A','Avoid fresh flowers and standing water in the room'],['B','Practice strict hand hygiene for caregivers and staff'],['C','Allow visitors who are currently ill'],['D','Monitor temperature closely and report fever promptly'],['E','Avoid live vaccines during immunosuppression per provider guidance'],['F','Encourage a low-microbial diet as instructed by the care team']],
+      correct:['A','B','D','E','F'], rationale:"Neutropenic precautions include avoiding standing water/fresh flowers, strict hand hygiene, temperature monitoring, avoiding live vaccines during immunosuppression, and dietary precautions as directed. Ill visitors should not be allowed to prevent infection transmission."},
+    {type:'sata', prompt:"A child is newly diagnosed with a brain tumor. Which signs/symptoms would the nurse expect to assess for?",
+      options:[['A','Morning headache, possibly with vomiting'],['B','Ataxia or changes in coordination/gait'],['C','Behavioral or personality changes'],['D','Improved vision'],['E','Papilledema on eye exam'],['F','Seizures']],
+      correct:['A','B','C','E','F'], rationale:"Brain tumor symptoms often include morning headache/vomiting (from increased ICP), ataxia, personality/behavioral changes, papilledema, and seizures. Vision typically worsens, not improves."},
+    {type:'note', text:"Case Study: A 5-year-old with sickle cell disease presents with fever of 102\u00b0F (38.9\u00b0C), increasing fatigue, and pallor. The parent reports the child has been \u201cless active than usual\u201d and the abdomen appears more distended than normal."},
+    {type:'mc', prompt:"The nurse should be most concerned about which complication?",
+      options:[['A','Simple viral illness only'],['B','Splenic sequestration crisis'],['C','Normal toddler behavior'],['D','Constipation']],
+      correct:['B'], rationale:"Fever, pallor, fatigue, and increasing abdominal distension in a child with sickle cell disease raise concern for splenic sequestration crisis, a life-threatening complication involving trapped blood in the spleen."},
+    {type:'sata', prompt:"Which nursing actions are appropriate for this child?",
+      options:[['A','Assess and monitor vital signs closely, including for signs of shock'],['B','Notify the provider of the fever and abdominal findings promptly'],['C','Assess hemoglobin/hematocrit trends'],['D','Delay intervention since sickle cell patients commonly have fevers'],['E','Prepare for possible transfusion if ordered']],
+      correct:['A','B','C','E'], rationale:"Close vital sign monitoring, prompt provider notification, trending labs, and preparing for possible transfusion are appropriate. Fever in sickle cell disease should never be dismissed as routine due to functional asplenia and infection risk."},
+    {type:'note', text:"Case Study: An 8-year-old receiving induction chemotherapy for ALL develops a temperature of 100.8\u00b0F (38.2\u00b0C). The child\u2019s absolute neutrophil count (ANC) is 400/mm\u00b3."},
+    {type:'mc', prompt:"This temperature in the context of neutropenia should be treated as:",
+      options:[['A','Not clinically significant since it is a low-grade fever'],['B','A potential medical emergency (febrile neutropenia) requiring prompt evaluation and likely empiric IV antibiotics'],['C','An indication to wait 24 hours before notifying the provider'],['D','Only relevant if the child also has a rash']],
+      correct:['B'], rationale:"Any fever \u2265100.4\u00b0F (38\u00b0C) in a neutropenic patient (ANC <500) is considered febrile neutropenia, a medical emergency requiring prompt evaluation, cultures, and empiric broad-spectrum antibiotics."}
+  ]
+},
+{
+  id:'t4', tab:'Test 4', title:'ENT &amp; Eye Disorders',
+  desc:'Acute otitis media, otitis media with effusion, PE tubes, ear foreign objects, conjunctivitis, strabismus, amblyopia, tonsillectomy.',
+  items:[
+    {type:'mc', prompt:"A 2-year-old presents with ear pain, fever, and irritability. Otoscopic exam reveals a bulging, erythematous tympanic membrane with decreased mobility. This is most consistent with:",
+      options:[['A','Otitis media with effusion (OME)'],['B','Acute otitis media (AOM)'],['C','Otitis externa'],['D','Normal tympanic membrane findings']],
+      correct:['B'], rationale:"AOM presents with rapid onset of ear pain, fever, irritability, and a bulging, erythematous, poorly mobile tympanic membrane, distinguishing it from OME (effusion without acute infection signs)."},
+    {type:'mc', prompt:"Which factor increases an infant's risk for acute otitis media compared to older children?",
+      options:[['A','Longer, more angled eustachian tubes'],['B','Shorter, more horizontal eustachian tubes that drain less effectively'],['C','Decreased exposure to respiratory infections'],['D','Larger eustachian tube diameter']],
+      correct:['B'], rationale:"Infants/young children have eustachian tubes that are shorter, wider, and more horizontal, impairing drainage and increasing susceptibility to AOM."},
+    {type:'mc', prompt:"A child has recurrent episodes of AOM and persistent middle ear effusion affecting hearing. The provider recommends pressure equalizing (PE) tubes. The nurse should teach the family that:",
+      options:[['A','Water must always be strictly kept out of the ears with tube use, without exception'],['B','Most providers recommend using earplugs during swimming/bathing per provider instructions, and to report drainage from the ear'],['C','PE tubes are permanent and never fall out'],['D','Hearing will not be affected by chronic effusion']],
+      correct:['B'], rationale:"Families are typically taught to use earplugs or take precautions during water exposure per provider instructions and to report ear drainage; tubes are temporary and often fall out on their own."},
+    {type:'mc', prompt:"A caregiver reports their toddler put a small bead in their ear. Which action by the caregiver is most appropriate?",
+      options:[['A','Attempt to remove the object at home using tweezers'],['B','Flush the ear vigorously with water at home'],['C','Seek medical evaluation for professional removal and avoid attempting home removal, especially if the object is not easily visible/accessible'],['D','Ignore it since foreign objects always fall out on their own']],
+      correct:['C'], rationale:"Foreign bodies in the ear should be evaluated and removed by a healthcare provider to avoid pushing the object deeper or causing injury."},
+    {type:'mc', prompt:"Which finding helps differentiate bacterial conjunctivitis from viral conjunctivitis?",
+      options:[['A','Bacterial conjunctivitis typically produces thick, purulent (yellow/green) discharge; viral conjunctivitis typically produces watery discharge'],['B','Both always require oral antibiotics'],['C','Viral conjunctivitis always requires eye patching'],['D','There is no clinical difference between the two']],
+      correct:['A'], rationale:"Bacterial conjunctivitis typically causes thick, purulent discharge, while viral conjunctivitis typically causes watery discharge, often with other viral symptoms."},
+    {type:'mc', prompt:"A 4-month-old is noted to have one eye that intermittently turns inward. The nurse should recognize this as a possible sign of:",
+      options:[['A','Normal infant eye development that always resolves without evaluation'],['B','Strabismus, which warrants evaluation, especially if persistent beyond the expected age or constant'],['C','Conjunctivitis'],['D','Otitis media']],
+      correct:['B'], rationale:"Intermittent or constant inward eye turning beyond the expected newborn period warrants evaluation for strabismus, since untreated strabismus can lead to amblyopia."},
+    {type:'mc', prompt:"Following a tonsillectomy, which finding requires immediate nursing intervention?",
+      options:[['A','Mild throat pain relieved by prescribed analgesics'],['B','Frequent swallowing, restlessness, and bright red emesis or blood-tinged drainage'],['C','Mild ear pain (referred pain)'],['D','Decreased appetite for the first day']],
+      correct:['B'], rationale:"Frequent swallowing, restlessness, and bright red bleeding/emesis after tonsillectomy are signs of hemorrhage, a surgical emergency requiring immediate intervention."},
+    {type:'sata', prompt:"Which are appropriate nursing interventions/teaching points for a child with acute otitis media?",
+      options:[['A','Administer prescribed analgesics/antipyretics for pain and fever'],['B','Complete the full course of antibiotics if prescribed'],['C','Position the child supine with a bottle propped for feeding to reduce crying'],['D','Educate on reducing risk factors such as secondhand smoke exposure and bottle-propping'],['E','Teach caregivers to monitor for worsening symptoms or signs of complications'],['F','Reassure that some cases of AOM may be managed with watchful waiting per provider guidance']],
+      correct:['A','B','D','E','F'], rationale:"Analgesics/antipyretics, completing prescribed antibiotics, reducing risk factors, monitoring for complications, and watchful waiting (per current guidelines for select cases) are all appropriate. Bottle-propping in a supine position increases AOM risk and should be avoided."},
+    {type:'sata', prompt:"The nurse is caring for a child with viral conjunctivitis. Select all appropriate points.",
+      options:[['A','It is highly contagious and spreads through direct/indirect contact with eye secretions'],['B','Supportive care (cool compresses, artificial tears) is often the mainstay of treatment'],['C','Antibiotic eye drops will always cure it faster'],['D','Hand hygiene and avoiding sharing personal items help prevent spread'],['E','Symptoms typically improve over 1\u20132 weeks'],['F','The child should never return to school/daycare under any circumstance, even after treatment']],
+      correct:['A','B','D','E'], rationale:"Viral conjunctivitis is highly contagious, managed supportively, prevented through hygiene, and typically resolves in 1\u20132 weeks. Antibiotic drops do not treat viral infections, and exclusion is not absolute once criteria are met per school/provider policy."},
+    {type:'sata', prompt:"Which are priority post-operative nursing assessments/interventions after pediatric tonsillectomy?",
+      options:[['A','Monitor for signs of hemorrhage (frequent swallowing, bright red emesis, restlessness, tachycardia)'],['B','Position the child on the side or abdomen to facilitate drainage while recovering from anesthesia'],['C','Encourage red or brown liquids/foods immediately after surgery'],['D','Offer cool, clear liquids and soft foods as tolerated'],['E','Discourage vigorous coughing, throat clearing, and straining'],['F','Monitor pain and administer analgesics as ordered']],
+      correct:['A','B','D','E','F'], rationale:"Monitoring for hemorrhage, side-lying/prone positioning during anesthesia recovery, cool soft foods/fluids, avoiding vigorous coughing/throat clearing, and pain management are all appropriate. Red/brown liquids should be avoided as they can mimic blood in emesis."},
+    {type:'note', text:"Case Study: A 3-year-old is brought in with ear pain, fever of 102.2\u00b0F (39\u00b0C), tugging at the right ear, and irritability for the past 2 days. Otoscopic exam shows a red, bulging tympanic membrane. The provider diagnoses AOM and prescribes amoxicillin. The child has now had three episodes of AOM in six months with persistent effusion noted on follow-up."},
+    {type:'sata', prompt:"Which teaching points should the nurse include for the caregiver regarding the current antibiotic course?",
+      options:[['A','Complete the full course of antibiotics even if symptoms improve'],['B','Give acetaminophen or ibuprofen as ordered for pain/fever'],['C','Stop the antibiotic as soon as the child feels better'],['D','Follow up if symptoms worsen or do not improve within 48\u201372 hours'],['E','Reduce risk factors such as exposure to secondhand smoke and bottle-propping during feeds']],
+      correct:['A','B','D','E'], rationale:"Completing the full antibiotic course, giving analgesics/antipyretics, following up if symptoms worsen, and reducing risk factors are appropriate. Stopping antibiotics early can lead to incomplete treatment and resistance."},
+    {type:'mc', prompt:"Given the recurrent AOM episodes and persistent effusion, what is the most likely next step in management?",
+      options:[['A','No further intervention needed'],['B','Referral to ENT for evaluation for possible PE tube placement'],['C','Immediate tonsillectomy'],['D','Discontinue all follow-up care']],
+      correct:['B'], rationale:"Recurrent AOM episodes with persistent effusion are a common indication for ENT referral and consideration of PE tube placement to improve drainage and reduce infection frequency."},
+    {type:'note', text:"Case Study: A 6-year-old is six hours post-tonsillectomy. The child begins frequently swallowing and appears restless, with a heart rate increased from baseline."},
+    {type:'mc', prompt:"Which nursing action is the priority?",
+      options:[['A','Offer a red popsicle to soothe the throat'],['B','Document the finding and reassess in 4 hours'],['C','Notify the provider immediately; this may indicate post-tonsillectomy hemorrhage'],['D','Encourage the child to cough forcefully to clear the throat']],
+      correct:['C'], rationale:"Frequent swallowing, restlessness, and increased heart rate are classic early signs of post-tonsillectomy hemorrhage and require immediate provider notification; this is a surgical emergency."}
+  ]
+},
+{
+  id:'tc', tab:'Combined', title:'Combined 50-Item Exam',
+  desc:'All four systems in one sitting \u2014 musculoskeletal, integumentary, hematology/immunology/oncology, and ENT &amp; eye, mirroring the standalone combined test and answer key.',
+  items:[] // filled below by concatenation
+}
+];
+
+// Build the combined exam as a curated re-sequencing (13+12+13+12 = 50 items),
+// pulling directly from the four source tests above so the content matches exactly.
+function pick(testIdx, idxs){ return idxs.map(i => TESTS[testIdx].items[i]); }
+TESTS[4].items = [
+  // Section 1: Musculoskeletal (13) -> t1 indices 0,2,3,5,7,9,10,11,12,13,14,15,16,17,18 trimmed to 13
+  ...pick(0, [0,2,3,5,7,9,10,11,12,13,14,15,17]),
+  // Section 2: Integumentary (12)
+  ...pick(1, [1,2,3,4,7,10,11,13,14,15,16,17]),
+  // Section 3: Hematology/Immunology/Oncology (13)
+  ...pick(2, [0,1,3,6,7,8,9,10,11,12,13,14,16]),
+  // Section 4: ENT & Eye (12)
+  ...pick(3, [0,2,3,5,6,4,7,8,9,10,11,13])
+];
+
+/* ---------- STATE & RENDER ---------- */
+let activeIdx = 0;
+let answers = {}; // key: testId::itemIndex -> array of selected keys
+let locked = {};  // key: testId -> bool
+let attempts = {}; // key: testId or quiz:<scope> -> [{score,total,pct,at}]
+let missed = {};   // key: question id -> true (questions missed in quiz mode, cleared when answered right)
+
+function qKey(testId, i){ return testId + '::' + i; }
+
+function renderRail(){
+  const rail = document.getElementById('rail');
+  rail.innerHTML = '';
+  TESTS.forEach((t, i) => {
+    const b = document.createElement('button');
+    const qCount = t.items.filter(it => it.type !== 'note').length;
+    b.className = i === activeIdx ? 'active' : '';
+    b.innerHTML = `<span class="n">${t.tab}</span>${t.title.replace('&amp;','&')}`;
+    b.onclick = () => { activeIdx = i; renderAll(); window.scrollTo({top:0, behavior:'smooth'}); };
+    rail.appendChild(b);
+  });
+  const total = TESTS[activeIdx].items.filter(it => it.type !== 'note').length;
+  document.getElementById('railCount').textContent = total + ' items';
+}
+
+function renderIntro(){
+  const t = TESTS[activeIdx];
+  const qCount = t.items.filter(it => it.type !== 'note').length;
+  document.getElementById('introCard').innerHTML = `
+    <h2>${t.title.replace('&amp;','&')}</h2>
+    <div class="meta">${qCount} items \u00b7 multiple choice &amp; select-all-that-apply</div>
+    <p>${t.desc}</p>${historyLine(t.id)}`;
+}
+
+function historyLine(id){
+  const h = (attempts[id] || []);
+  if(!h.length) return '';
+  const best = h.reduce((m,a)=> a.pct>m.pct ? a : m, h[0]);
+  const last = h[h.length-1];
+  return `<div class="history">Attempts: ${h.length} \u00b7 Last: ${last.score}/${last.total} (${last.pct}%) \u00b7 Best: ${best.pct}%</div>`;
+}
+function scoreFor(t){
+  const items = t.items.filter(it => it.type !== 'note');
+  let c = 0;
+  items.forEach(it => {
+    const i = t.items.indexOf(it);
+    if((answers[qKey(t.id,i)]||[]).slice().sort().join(',') === it.correct.slice().sort().join(',')) c++;
+  });
+  return {score:c, total:items.length, pct:Math.round(c/items.length*100)};
+}
+
+function renderScoreBanner(){
+  const t = TESTS[activeIdx];
+  const banner = document.getElementById('scoreBanner');
+  if(!locked[t.id]){ banner.className = 'score-banner'; banner.innerHTML=''; return; }
+  const items = t.items.filter(it => it.type !== 'note');
+  let correctCount = 0;
+  items.forEach((it, i) => {
+    const realIdx = t.items.indexOf(it);
+    const sel = (answers[qKey(t.id, realIdx)] || []).slice().sort().join(',');
+    const corr = it.correct.slice().sort().join(',');
+    if(sel === corr) correctCount++;
+  });
+  const pct = Math.round((correctCount / items.length) * 100);
+  banner.className = 'score-banner show';
+  banner.style.background = pct >= 80 ? 'var(--green-pale)' : pct >= 60 ? 'var(--amber-pale)' : 'var(--brick-pale)';
+  banner.innerHTML = `<div class="big">${correctCount} / ${items.length}</div><div class="sub">${pct}% correct \u2014 review rationales below, or reset to try again.</div>`;
+}
+
+function renderQuestions(){
+  const t = TESTS[activeIdx];
+  const list = document.getElementById('qList');
+  list.innerHTML = '';
+  let qNum = 0;
+  t.items.forEach((it, i) => {
+    if(it.type === 'note'){
+      const d = document.createElement('div');
+      d.className = 'note';
+      d.innerHTML = `<span class="label">Case Study</span>${it.text}`;
+      list.appendChild(d);
+      return;
+    }
+    qNum++;
+    const key = qKey(t.id, i);
+    const isLocked = !!locked[t.id];
+    const sel = answers[key] || [];
+    const corr = it.correct;
+
+    const card = document.createElement('div');
+    card.className = 'q' + (isLocked ? ' locked' : '');
+    if(isLocked){
+      const selSorted = sel.slice().sort().join(',');
+      const corrSorted = corr.slice().sort().join(',');
+      card.className += selSorted === corrSorted ? ' correct' : ' incorrect';
+    }
+
+    const head = document.createElement('div');
+    head.className = 'q-head';
+    head.innerHTML = `<span class="q-num">Q${qNum}</span><span class="q-type${it.type==='sata'?' sata':''}">${it.type==='sata' ? 'SATA' : 'Multiple Choice'}</span>`;
+    card.appendChild(head);
+
+    const p = document.createElement('p');
+    p.className = 'q-prompt';
+    p.textContent = it.prompt;
+    card.appendChild(p);
+
+    if(it.type === 'sata'){
+      const hint = document.createElement('p');
+      hint.className = 'q-sata-hint';
+      hint.textContent = 'Select all that apply.';
+      card.appendChild(hint);
+    }
+
+    const opts = document.createElement('div');
+    opts.className = 'opts';
+    it.options.forEach(([k, label]) => {
+      const row = document.createElement('label');
+      row.className = 'opt';
+      const input = document.createElement('input');
+      input.type = it.type === 'sata' ? 'checkbox' : 'radio';
+      input.name = key;
+      input.value = k;
+      input.checked = sel.includes(k);
+      input.disabled = isLocked;
+      input.onchange = () => {
+        if(it.type === 'sata'){
+          let cur = answers[key] || [];
+          if(input.checked) cur = [...cur, k]; else cur = cur.filter(x => x !== k);
+          answers[key] = cur;
+        } else {
+          answers[key] = [k];
+        }
+        renderQuestions();
+        updateProgress();
+        saveState();
+      };
+      row.appendChild(input);
+      const kEl = document.createElement('span');
+      kEl.className = 'key';
+      kEl.textContent = k + '.';
+      row.appendChild(kEl);
+      const txt = document.createElement('span');
+      txt.textContent = label;
+      row.appendChild(txt);
+      if(isLocked){
+        if(corr.includes(k)) row.classList.add('is-correct');
+        else if(sel.includes(k)) row.classList.add('is-wrong');
+      }
+      opts.appendChild(row);
+    });
+    card.appendChild(opts);
+
+    const rat = document.createElement('div');
+    rat.className = 'rationale';
+    rat.innerHTML = `<span class="label">Rationale</span>${it.rationale}`;
+    card.appendChild(rat);
+
+    list.appendChild(card);
+  });
+}
+
+function updateProgress(){
+  const t = TESTS[activeIdx];
+  const items = t.items.filter(it => it.type !== 'note');
+  let answered = 0;
+  t.items.forEach((it, i) => {
+    if(it.type === 'note') return;
+    if((answers[qKey(t.id, i)] || []).length > 0) answered++;
+  });
+  document.getElementById('progressText').textContent = `${answered} of ${items.length} answered`;
+  document.getElementById('submitBtn').disabled = !!locked[t.id];
+  document.getElementById('submitBtn').textContent = locked[t.id] ? 'Submitted' : 'Submit Test';
+}
+
+function renderAll(){
+  renderRail();
+  renderIntro();
+  renderScoreBanner();
+  renderQuestions();
+  updateProgress();
+}
+
+document.getElementById('submitBtn').onclick = () => {
+  const t = TESTS[activeIdx];
+  locked[t.id] = true;
+  (attempts[t.id] = attempts[t.id] || []).push({...scoreFor(t), at: Date.now()});
+  renderAll();
+  saveState();
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+
+document.getElementById('resetBtn').onclick = () => {
+  const t = TESTS[activeIdx];
+  locked[t.id] = false;
+  t.items.forEach((it, i) => { delete answers[qKey(t.id, i)]; });
+  renderAll();
+  saveState();
+};
+
+function saveState(){
+  try{
+    localStorage.setItem('peds_nclex_answers', JSON.stringify(answers));
+    localStorage.setItem('peds_nclex_locked', JSON.stringify(locked));
+    localStorage.setItem('peds_nclex_attempts', JSON.stringify(attempts));
+    localStorage.setItem('peds_nclex_missed', JSON.stringify(missed));
+  }catch(e){ /* storage unavailable */ }
+  if(window.cloudSave) window.cloudSave({answers, locked, attempts, missed});
+}
+function loadState(){
+  try{
+    const a = localStorage.getItem('peds_nclex_answers');
+    const l = localStorage.getItem('peds_nclex_locked');
+    if(a) answers = JSON.parse(a);
+    if(l) locked = JSON.parse(l);
+    const h = localStorage.getItem('peds_nclex_attempts');
+    if(h) attempts = JSON.parse(h);
+    const m = localStorage.getItem('peds_nclex_missed');
+    if(m) missed = JSON.parse(m);
+  }catch(e){ /* ignore */ }
+}
+
+
+/* ---------- QUIZ MODE ---------- */
+// Question bank from the four topic tests (the combined exam reuses these, so it's excluded).
+const BANK = [];
+TESTS.slice(0,4).forEach(t => {
+  let context = null;
+  t.items.forEach((it, i) => {
+    if(it.type === 'note'){ context = it.text; return; }
+    BANK.push({ id: t.id + '::' + i, testId: t.id, topic: t.title.replace('&amp;','&'), context, ...it });
+  });
+});
+
+let mode = 'tests';
+let quiz = null; // {qs, i, picked, checked, right, wrongIds, scope}
+
+function setMode(m){
+  mode = m;
+  document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  document.getElementById('testsView').classList.toggle('hidden', m !== 'tests');
+  document.getElementById('footerBar').classList.toggle('hidden', m !== 'tests');
+  document.getElementById('quizView').classList.toggle('hidden', m !== 'quiz');
+  document.getElementById('railCount').classList.toggle('hidden', m !== 'tests');
+  if(m === 'quiz' && !quiz) renderQuizSetup();
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('#modes button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderQuizSetup(){
+  const v = document.getElementById('quizView');
+  const missedCount = BANK.filter(q => missed[q.id]).length;
+  const topics = TESTS.slice(0,4).map(t => {
+    const n = BANK.filter(q => q.testId === t.id).length;
+    const h = attempts['quiz:' + t.id] || [];
+    const last = h.length ? ` · last ${h[h.length-1].pct}%` : '';
+    return `<label class="topic"><input type="checkbox" value="${t.id}" checked><span>${t.title}<small>${n} questions${last}</small></span></label>`;
+  }).join('');
+  const recent = Object.entries(attempts).filter(([k]) => k.startsWith('quiz:')).flatMap(([k, list]) => list.map(a => ({...a, k})))
+    .sort((a,b) => b.at - a.at).slice(0,5);
+  v.innerHTML = `
+    <div class="card">
+      <h2>Quiz Mode</h2>
+      <p class="sub">One question at a time with instant feedback and rationales. Questions you miss are saved so you can drill them later.</p>
+      <div class="topic-grid">${topics}</div>
+      <div class="row">
+        <label>Questions <select id="qzCount"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option><option value="999">All</option></select></label>
+        <button class="primary" id="qzStart">Start quiz</button>
+        <button class="ghost" id="qzMissed" ${missedCount ? '' : 'disabled'}>Review missed (${missedCount})</button>
+      </div>
+    </div>
+    ${recent.length ? `<div class="card"><h2 style="font-size:17px">Recent quizzes</h2><ul class="missed-list">${recent.map(a => `<li>${new Date(a.at).toLocaleDateString()} — ${a.score}/${a.total} (${a.pct}%) · ${a.k === 'quiz:missed' ? 'Missed review' : a.k === 'quiz:mixed' ? 'Mixed topics' : ((TESTS.find(t => 'quiz:'+t.id === a.k)||{}).title || '')}</li>`).join('')}</ul></div>` : ''}`;
+  document.getElementById('qzStart').onclick = () => {
+    const ids = [...v.querySelectorAll('.topic input:checked')].map(x => x.value);
+    if(!ids.length) return;
+    const n = +document.getElementById('qzCount').value;
+    const qs = shuffle(BANK.filter(q => ids.includes(q.testId))).slice(0, n);
+    startQuiz(qs, ids.length === 1 ? ids[0] : 'mixed');
+  };
+  document.getElementById('qzMissed').onclick = () => startQuiz(shuffle(BANK.filter(q => missed[q.id])), 'missed');
+}
+
+function startQuiz(qs, scope){
+  quiz = { qs, i: 0, picked: [], checked: false, right: 0, wrongIds: [], scope };
+  renderQuizQ();
+}
+
+function renderQuizQ(){
+  const v = document.getElementById('quizView');
+  const q = quiz.qs[quiz.i];
+  const isSata = q.type === 'sata';
+  const ok = quiz.checked && quiz.picked.slice().sort().join(',') === q.correct.slice().sort().join(',');
+  const opts = q.options.map(([k, label]) => {
+    let cls = 'opt';
+    if(quiz.checked){
+      if(q.correct.includes(k)) cls += ' is-correct';
+      else if(quiz.picked.includes(k)) cls += ' is-wrong';
+    }
+    return `<label class="${cls}"><input type="${isSata?'checkbox':'radio'}" name="qz" value="${k}" ${quiz.picked.includes(k)?'checked':''} ${quiz.checked?'disabled':''}><span class="key">${k}.</span><span>${esc(label)}</span></label>`;
+  }).join('');
+  v.innerHTML = `
+    <div class="quiz-top"><span>Question ${quiz.i+1} of ${quiz.qs.length}</span><span>${quiz.right} correct</span></div>
+    <div class="bar"><i style="width:${(quiz.i/quiz.qs.length)*100}%"></i></div>
+    ${q.context ? `<div class="note"><span class="label">Case Study</span>${q.context}</div>` : ''}
+    <div class="q quiz ${quiz.checked ? (ok ? 'correct' : 'incorrect') : ''}">
+      <div class="q-head"><span class="q-num">${esc(q.topic)}</span><span class="q-type${isSata?' sata':''}">${isSata?'SATA':'Multiple Choice'}</span></div>
+      <p class="q-prompt">${esc(q.prompt)}</p>
+      ${isSata ? '<p class="q-sata-hint">Select all that apply.</p>' : ''}
+      <div class="opts">${opts}</div>
+      ${quiz.checked ? `<div class="feedback ${ok?'ok':'bad'}">${ok ? 'Correct' : 'Not quite — correct answer: ' + q.correct.join(', ')}</div><div class="rationale"><span class="label">Rationale</span>${q.rationale}</div>` : ''}
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <button class="ghost" id="qzQuit">End quiz</button>
+      <button class="primary" id="qzNext" ${!quiz.checked && !quiz.picked.length ? 'disabled' : ''}>${quiz.checked ? (quiz.i+1 < quiz.qs.length ? 'Next question' : 'See results') : 'Check answer'}</button>
+    </div>`;
+  v.querySelectorAll('input[name=qz]').forEach(inp => inp.onchange = () => {
+    if(isSata){ quiz.picked = inp.checked ? [...quiz.picked, inp.value] : quiz.picked.filter(x => x !== inp.value); }
+    else quiz.picked = [inp.value];
+    document.getElementById('qzNext').disabled = !quiz.picked.length;
+  });
+  document.getElementById('qzQuit').onclick = () => quiz.i > 0 || quiz.checked ? finishQuiz(true) : (quiz = null, renderQuizSetup());
+  document.getElementById('qzNext').onclick = () => {
+    if(!quiz.checked){
+      quiz.checked = true;
+      const good = quiz.picked.slice().sort().join(',') === q.correct.slice().sort().join(',');
+      if(good){ quiz.right++; delete missed[q.id]; } else { quiz.wrongIds.push(q.id); missed[q.id] = true; }
+      saveState();
+      renderQuizQ();
+    } else if(quiz.i + 1 < quiz.qs.length){
+      quiz.i++; quiz.picked = []; quiz.checked = false; renderQuizQ(); window.scrollTo({top:0});
+    } else finishQuiz(false);
+  };
+}
+
+function finishQuiz(early){
+  const answered = quiz.i + (quiz.checked ? 1 : 0);
+  const v = document.getElementById('quizView');
+  if(answered > 0){
+    const pct = Math.round(quiz.right / answered * 100);
+    (attempts['quiz:' + quiz.scope] = attempts['quiz:' + quiz.scope] || []).push({score: quiz.right, total: answered, pct, at: Date.now()});
+    saveState();
+    const wrong = quiz.wrongIds.map(id => BANK.find(q => q.id === id));
+    v.innerHTML = `
+      <div class="card">
+        <h2>${quiz.right} / ${answered} correct (${pct}%)</h2>
+        <p class="sub">${early ? 'Quiz ended early. ' : ''}${wrong.length ? 'These were added to your Review missed list:' : 'Perfect run — nothing missed.'}</p>
+        ${wrong.length ? `<ul class="missed-list">${wrong.map(q => `<li>${esc(q.prompt)}</li>`).join('')}</ul>` : ''}
+        <div class="row" style="margin-top:16px">
+          ${wrong.length ? '<button class="primary" id="qzRetry">Retry missed now</button>' : ''}
+          <button class="ghost" id="qzHome">New quiz</button>
+        </div>
+      </div>`;
+    const retry = document.getElementById('qzRetry');
+    if(retry) retry.onclick = () => startQuiz(shuffle(wrong), 'missed');
+    document.getElementById('qzHome').onclick = () => { quiz = null; renderQuizSetup(); };
+  } else { quiz = null; renderQuizSetup(); }
+  window.scrollTo({top:0});
+}
+
+// Called by the Firebase module when cloud data arrives
+window.getLocalState = () => ({answers, locked, attempts, missed});
+window.applyCloudState = (d) => {
+  answers = d.answers || {}; locked = d.locked || {}; attempts = d.attempts || {}; missed = d.missed || {};
+  try{
+    localStorage.setItem('peds_nclex_answers', JSON.stringify(answers));
+    localStorage.setItem('peds_nclex_locked', JSON.stringify(locked));
+    localStorage.setItem('peds_nclex_attempts', JSON.stringify(attempts));
+    localStorage.setItem('peds_nclex_missed', JSON.stringify(missed));
+  }catch(e){}
+  renderAll();
+  if(mode === 'quiz' && !quiz) renderQuizSetup();
+};
+
+loadState();
+renderAll();
+</script>
+<script type="module" src="app-firebase.js"></script>
+</body>
+</html>
