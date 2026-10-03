@@ -242,7 +242,7 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
   <div class="masthead">
     <div>
       <h1>NCLEX Prep</h1>
-      <p>Practice sets built from your course objectives — pediatric body systems, Exam 1 (genetics, professional nursing, growth &amp; development, the hospitalized child) and Exam 2 (pregnancy, labor, postpartum, family &amp; community health).</p>
+      <p>Practice sets built from your course objectives — pediatric body systems, Exam 1 (genetics, professional nursing, growth &amp; development, the hospitalized child) Exam 2 (pregnancy, labor, postpartum, family &amp; community health), Exam 5 (cardiac, respiratory, normal newborn, endocrine) and Exam 6 (infectious disease, neuro, high-risk newborn, GI/GU).</p>
     </div>
     <div class="masthead-right">
       <span class="chip-count" id="railCount"></span>
@@ -282,6 +282,7 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
 </div>
 
 <script src="exams.js"></script>
+<script src="exams2.js"></script>
 <script>
 /* ---------- DATA ---------- */
 const TESTS = [
@@ -531,7 +532,7 @@ TESTS[4].items = [
 TESTS.push(...(window.EXTRA_TESTS || []));
 TESTS.forEach(t => { if(t.combinedOf && !t.items) t.items = t.combinedOf.flatMap(id => TESTS.find(x => x.id === id).items); });
 const SOURCE_TESTS = TESTS.filter(t => !t.combinedOf);
-const GROUPS = [{ id:'peds', name:'Peds Systems' }, { id:'exam1', name:'Exam 1' }, { id:'exam2', name:'Exam 2' }];
+const GROUPS = [{ id:'peds', name:'Peds Systems' }, { id:'exam1', name:'Exam 1' }, { id:'exam2', name:'Exam 2' }, { id:'exam5', name:'Exam 5' }, { id:'exam6', name:'Exam 6' }];
 
 /* ---------- STATE & RENDER ---------- */
 let activeIdx = 0;

@@ -1,6 +1,6 @@
 # NCLEX Prep (Pediatrics & Maternity)
 
-NCLEX-style practice sets built from course objectives: pediatric body systems (musculoskeletal, integumentary, hematology/immunology/oncology, ENT & eye), Exam 1 (genetics & newborn, professional nursing, growth & development, the hospitalized child) and Exam 2 (pregnancy, labor & birth, postpartum, family & community health).
+NCLEX-style practice sets built from course objectives: pediatric body systems (musculoskeletal, integumentary, hematology/immunology/oncology, ENT & eye), Exam 1 (genetics & newborn, professional nursing, growth & development, the hospitalized child), Exam 2 (pregnancy, labor & birth, postpartum, family & community health), Exam 5 (cardiac, respiratory, normal newborn, endocrine) and Exam 6 (infectious disease, neuro/neuromuscular, high-risk newborn, GI/GU).
 
 - **Practice Tests:** full tests with scoring, rationales and attempt history
 - **Quiz Mode:** one question at a time, shuffled, instant feedback, and a saved "Review missed" list
