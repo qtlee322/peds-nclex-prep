@@ -242,7 +242,7 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
   <div class="masthead">
     <div>
       <h1>NCLEX Prep</h1>
-      <p>Five 50-question exams (Peds Systems, Exam 1, 2, 5 and 6) and a 100-question cumulative final, built from your course objectives. Every question is unique.</p>
+      <p>Six 50-question tests (Tests 1–6) and a 100-question cumulative final, built from your course objectives. Every question is unique.</p>
     </div>
     <div class="masthead-right">
       <span class="chip-count" id="railCount"></span>
@@ -282,6 +282,7 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
 
 <script src="exams.js"></script>
 <script src="exams2.js"></script>
+<script src="exams3.js"></script>
 <script src="curation.js"></script>
 <script>
 /* ---------- DATA ---------- */
@@ -516,11 +517,12 @@ const DUPES = new Set(window.DUPLICATE_IDS || []);
 UNITS.forEach(u => u.items.forEach((it, i) => { if(DUPES.has(u.id + '::' + i)) it.dup = true; }));
 const SOURCE_TESTS = UNITS;
 const GROUPS = [
-  { id:'peds',  name:'Peds Systems', desc:'Musculoskeletal, integumentary, hematology/immunology/oncology, and ENT &amp; eye disorders.' },
-  { id:'exam1', name:'Exam 1', desc:'Genetics, fetal development &amp; the newborn; professional nursing (legal, ethical, SBAR, abuse reporting); growth &amp; development; the hospitalized child.' },
-  { id:'exam2', name:'Exam 2', desc:'Pregnancy &amp; prenatal care; labor &amp; birth; postpartum care; family &amp; community health.' },
-  { id:'exam5', name:'Exam 5', desc:'Cardiac conditions; respiratory disorders; the normal newborn; endocrine disorders.' },
-  { id:'exam6', name:'Exam 6', desc:'Infectious diseases; neurologic &amp; neuromuscular disorders; the high-risk newborn; GI &amp; GU disorders.' }
+  { id:'exam1', name:'Test 1', desc:'Genetics, fetal development &amp; the newborn; professional nursing (legal, ethical, SBAR, abuse reporting); growth &amp; development; the hospitalized child.' },
+  { id:'exam2', name:'Test 2', desc:'Pregnancy &amp; prenatal care; labor &amp; birth; postpartum care; family &amp; community health.' },
+  { id:'exam3', name:'Test 3', desc:'Antepartum complications; labor &amp; birth complications; reproductive health disorders; sexually transmitted infections; contraception.' },
+  { id:'peds',  name:'Test 4', desc:'Pediatric musculoskeletal, integumentary, hematology/immunology/oncology, and ENT &amp; eye disorders.' },
+  { id:'exam5', name:'Test 5', desc:'Cardiac conditions; respiratory disorders; the normal newborn; endocrine disorders.' },
+  { id:'exam6', name:'Test 6', desc:'Infectious diseases; neurologic &amp; neuromuscular disorders; the high-risk newborn; GI &amp; GU disorders.' }
 ];
 
 /* ---------- STATE & RENDER ---------- */
@@ -560,7 +562,8 @@ function unitBlocks(u){
 }
 const nQ = b => b.filter(x => x.type !== 'note').length;
 TESTS.length = 0;
-const FINAL_ITEMS = [];
+const FINAL_SIZE = 100;
+const LEFTOVER = []; // per-unit queues of blocks not used in a 50-question test
 GROUPS.forEach(g => {
   // Case studies first, then single questions; take one block per unit in turn so every unit is represented.
   const queues = UNITS.filter(u => u.group === g.id).map(u => { const bl = unitBlocks(u); return [...bl.filter(b => b[0].type === 'note'), ...bl.filter(b => b[0].type !== 'note')]; });
@@ -574,11 +577,24 @@ GROUPS.forEach(g => {
       const [b] = qu.splice(k, 1); items.push(...b); n += nQ(b); moved = true;
     }
   }
-  queues.forEach(qu => qu.forEach(b => FINAL_ITEMS.push(...b)));
-  TESTS.push({ id: 'x-' + g.id, group: g.id, tab: n + ' questions', title: g.id === 'peds' ? 'Peds Systems Exam' : g.name, desc: g.desc, items });
+  LEFTOVER.push(...queues);
+  TESTS.push({ id: 'x-' + g.id, group: g.id, tab: n + ' questions', title: g.name, desc: g.desc, items });
 });
+// Final: 100 questions drawn evenly from every unit's leftovers (questions not in any test above).
+// Anything not needed stays available in Quiz Mode.
+const FINAL_ITEMS = []; { let n = 0, moved = true;
+  while(n < FINAL_SIZE && moved){
+    moved = false;
+    for(const qu of LEFTOVER){
+      if(n >= FINAL_SIZE) break;
+      const k = qu.findIndex(b => nQ(b) <= FINAL_SIZE - n);
+      if(k < 0) continue;
+      const [b] = qu.splice(k, 1); FINAL_ITEMS.push(...b); n += nQ(b); moved = true;
+    }
+  }
+}
 TESTS.push({ id: 'final', group: 'final', tab: FINAL_ITEMS.filter(x => x.type !== 'note').length + ' questions', title: 'Final Exam',
-  desc: 'Cumulative final covering every exam. None of these questions appear in Exams 1–6 or the Peds Systems exam.', items: FINAL_ITEMS });
+  desc: 'Cumulative final covering every unit of Tests 1–6. None of these questions appear on any of the six tests.', items: FINAL_ITEMS });
 function testBlocks(t){
   const blocks = []; let cur = null;
   t.items.forEach((it, i) => {
