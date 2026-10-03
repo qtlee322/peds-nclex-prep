@@ -485,6 +485,40 @@ let answers = {}; // key: testId::itemIndex -> array of selected keys
 let locked = {};  // key: testId -> bool
 let attempts = {}; // key: testId or quiz:<scope> -> [{score,total,pct,at}]
 let missed = {};   // key: question id -> true (questions missed in quiz mode, cleared when answered right)
+let orders = {};   // key: testId -> shuffled list of item indices for the current attempt
+
+/* ---------- SHUFFLING ---------- */
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// Shuffle, but never return the exact same sequence as `prev` (when more than one ordering is possible).
+function freshShuffle(arr, prev, sig = x => x){
+  const before = prev ? prev.map(sig).join('|') : null;
+  let out = shuffle(arr);
+  for(let tries = 0; arr.length > 1 && before && out.map(sig).join('|') === before && tries < 20; tries++) out = shuffle(arr);
+  return out;
+}
+// Group a test into blocks: each case study stays together with the questions that follow it.
+// Which case study each question belongs to in its original test (the combined exam reuses these objects).
+const CASE_OF = new Map();
+TESTS.slice(0,4).forEach(t => { let note = null; t.items.forEach(it => { if(it.type === 'note') note = it; else CASE_OF.set(it, note); }); });
+function testBlocks(t){
+  const blocks = []; let cur = null;
+  t.items.forEach((it, i) => {
+    if(it.type === 'note'){ cur = { note: it, idx: [i] }; blocks.push(cur.idx); }
+    else if(cur && CASE_OF.get(it) === cur.note){ cur.idx.push(i); }
+    else { cur = null; blocks.push([i]); }
+  });
+  return blocks.filter(b => b.some(i => t.items[i].type !== 'note')); // drop case studies with no questions
+}
+function newOrder(t){
+  const blocks = testBlocks(t);
+  const prevBlocks = orders[t.id] ? blocks.slice().sort((a,b) => orders[t.id].indexOf(a[0]) - orders[t.id].indexOf(b[0])) : null;
+  orders[t.id] = freshShuffle(blocks, prevBlocks, b => b[0]).flat();
+}
+function orderFor(t){
+  const valid = orders[t.id] && orders[t.id].every(i => i < t.items.length);
+  if(!valid){ newOrder(t); saveState(); }
+  return orders[t.id];
+}
 
 function qKey(testId, i){ return testId + '::' + i; }
 
@@ -552,7 +586,8 @@ function renderQuestions(){
   const list = document.getElementById('qList');
   list.innerHTML = '';
   let qNum = 0;
-  t.items.forEach((it, i) => {
+  orderFor(t).forEach(i => {
+    const it = t.items[i];
     if(it.type === 'note'){
       const d = document.createElement('div');
       d.className = 'note';
@@ -650,6 +685,7 @@ function updateProgress(){
   document.getElementById('progressText').textContent = `${answered} of ${items.length} answered`;
   document.getElementById('submitBtn').disabled = !!locked[t.id];
   document.getElementById('submitBtn').textContent = locked[t.id] ? 'Submitted' : 'Submit Test';
+  document.getElementById('resetBtn').textContent = locked[t.id] ? 'Retake (new order)' : 'Reset & shuffle';
 }
 
 function renderAll(){
@@ -673,7 +709,9 @@ document.getElementById('resetBtn').onclick = () => {
   const t = TESTS[activeIdx];
   locked[t.id] = false;
   t.items.forEach((it, i) => { delete answers[qKey(t.id, i)]; });
+  newOrder(t); // every retake gets a fresh question order
   renderAll();
+  window.scrollTo({top:0, behavior:'smooth'});
   saveState();
 };
 
@@ -683,8 +721,9 @@ function saveState(){
     localStorage.setItem('peds_nclex_locked', JSON.stringify(locked));
     localStorage.setItem('peds_nclex_attempts', JSON.stringify(attempts));
     localStorage.setItem('peds_nclex_missed', JSON.stringify(missed));
+    localStorage.setItem('peds_nclex_orders', JSON.stringify(orders));
   }catch(e){ /* storage unavailable */ }
-  if(window.cloudSave) window.cloudSave({answers, locked, attempts, missed});
+  if(window.cloudSave) window.cloudSave({answers, locked, attempts, missed, orders});
 }
 function loadState(){
   try{
@@ -696,6 +735,8 @@ function loadState(){
     if(h) attempts = JSON.parse(h);
     const m = localStorage.getItem('peds_nclex_missed');
     if(m) missed = JSON.parse(m);
+    const o = localStorage.getItem('peds_nclex_orders');
+    if(o) orders = JSON.parse(o);
   }catch(e){ /* ignore */ }
 }
 
@@ -713,6 +754,7 @@ TESTS.slice(0,4).forEach(t => {
 
 let mode = 'tests';
 let quiz = null; // {qs, i, picked, checked, right, wrongIds, scope}
+let lastQuiz = null; // previous quiz's question list, so the next one never repeats its order
 
 function setMode(m){
   mode = m;
@@ -726,7 +768,6 @@ function setMode(m){
 }
 document.querySelectorAll('#modes button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
 
-function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 function renderQuizSetup(){
@@ -756,13 +797,14 @@ function renderQuizSetup(){
     const ids = [...v.querySelectorAll('.topic input:checked')].map(x => x.value);
     if(!ids.length) return;
     const n = +document.getElementById('qzCount').value;
-    const qs = shuffle(BANK.filter(q => ids.includes(q.testId))).slice(0, n);
+    const qs = freshShuffle(BANK.filter(q => ids.includes(q.testId)), lastQuiz, q => q.id).slice(0, n);
     startQuiz(qs, ids.length === 1 ? ids[0] : 'mixed');
   };
-  document.getElementById('qzMissed').onclick = () => startQuiz(shuffle(BANK.filter(q => missed[q.id])), 'missed');
+  document.getElementById('qzMissed').onclick = () => startQuiz(freshShuffle(BANK.filter(q => missed[q.id]), lastQuiz, q => q.id), 'missed');
 }
 
 function startQuiz(qs, scope){
+  lastQuiz = qs;
   quiz = { qs, i: 0, picked: [], checked: false, right: 0, wrongIds: [], scope };
   renderQuizQ();
 }
@@ -833,21 +875,22 @@ function finishQuiz(early){
         </div>
       </div>`;
     const retry = document.getElementById('qzRetry');
-    if(retry) retry.onclick = () => startQuiz(shuffle(wrong), 'missed');
+    if(retry) retry.onclick = () => startQuiz(freshShuffle(wrong, lastQuiz, q => q.id), 'missed');
     document.getElementById('qzHome').onclick = () => { quiz = null; renderQuizSetup(); };
   } else { quiz = null; renderQuizSetup(); }
   window.scrollTo({top:0});
 }
 
 // Called by the Firebase module when cloud data arrives
-window.getLocalState = () => ({answers, locked, attempts, missed});
+window.getLocalState = () => ({answers, locked, attempts, missed, orders});
 window.applyCloudState = (d) => {
-  answers = d.answers || {}; locked = d.locked || {}; attempts = d.attempts || {}; missed = d.missed || {};
+  answers = d.answers || {}; locked = d.locked || {}; attempts = d.attempts || {}; missed = d.missed || {}; orders = d.orders || orders;
   try{
     localStorage.setItem('peds_nclex_answers', JSON.stringify(answers));
     localStorage.setItem('peds_nclex_locked', JSON.stringify(locked));
     localStorage.setItem('peds_nclex_attempts', JSON.stringify(attempts));
     localStorage.setItem('peds_nclex_missed', JSON.stringify(missed));
+    localStorage.setItem('peds_nclex_orders', JSON.stringify(orders));
   }catch(e){}
   renderAll();
   if(mode === 'quiz' && !quiz) renderQuizSetup();

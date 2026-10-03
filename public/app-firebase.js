@@ -46,7 +46,7 @@ window.cloudSave = (state) => {
   timer = setTimeout(async () => {
     try {
       await setDoc(doc(db, 'users', user.uid), {
-        answers: state.answers, locked: state.locked, attempts: state.attempts, missed: state.missed || {},
+        answers: state.answers, locked: state.locked, attempts: state.attempts, missed: state.missed || {}, orders: state.orders || {},
         updatedAt: serverTimestamp()
       });
       setStatus('Synced');
@@ -88,7 +88,7 @@ onAuthStateChanged(auth, async (u) => {
         const seen = new Set((attempts[id] || []).map(a => a.at));
         attempts[id] = [...(attempts[id] || []), ...list.filter(a => !seen.has(a.at))].sort((a, b) => a.at - b.at);
       }
-      window.applyCloudState({ answers: cloud.answers, locked: cloud.locked, attempts, missed: { ...(local.missed || {}), ...(cloud.missed || {}) } });
+      window.applyCloudState({ answers: cloud.answers, locked: cloud.locked, attempts, missed: { ...(local.missed || {}), ...(cloud.missed || {}) }, orders: cloud.orders || local.orders });
       window.cloudSave(window.getLocalState());
     } else {
       window.cloudSave(window.getLocalState()); // first sign-in: upload this device's progress
