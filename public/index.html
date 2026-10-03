@@ -509,10 +509,23 @@ function testBlocks(t){
   });
   return blocks.filter(b => b.some(i => t.items[i].type !== 'note')); // drop case studies with no questions
 }
+const LETTERS = 'ABCDEFGH';
+let optOrdersDirty = false;
+// Answer-choice order for one question: a list of the original option keys, never identical to the previous order.
+function shuffleOptions(it, prev){ return freshShuffle(it.options.map(o => o[0]), prev); }
+function optOrderFor(t, i){
+  const it = t.items[i], k = 'opt:' + qKey(t.id, i), cur = orders[k];
+  const valid = cur && cur.length === it.options.length && it.options.every(o => cur.includes(o[0]));
+  if(!valid){ orders[k] = shuffleOptions(it, cur || it.options.map(o => o[0])); optOrdersDirty = true; }
+  return orders[k];
+}
+// Map original answer keys to the letters the student actually sees.
+function shownLetters(order, keys){ return keys.map(k => LETTERS[order.indexOf(k)]).sort().join(', '); }
 function newOrder(t){
   const blocks = testBlocks(t);
   const prevBlocks = orders[t.id] ? blocks.slice().sort((a,b) => orders[t.id].indexOf(a[0]) - orders[t.id].indexOf(b[0])) : null;
   orders[t.id] = freshShuffle(blocks, prevBlocks, b => b[0]).flat();
+  t.items.forEach((it, i) => { if(it.type !== 'note'){ const k = 'opt:' + qKey(t.id, i); orders[k] = shuffleOptions(it, orders[k]); } });
 }
 function orderFor(t){
   const valid = orders[t.id] && orders[t.id].every(i => i < t.items.length);
@@ -628,7 +641,9 @@ function renderQuestions(){
 
     const opts = document.createElement('div');
     opts.className = 'opts';
-    it.options.forEach(([k, label]) => {
+    const optOrder = optOrderFor(t, i);
+    optOrder.forEach((k, pos) => {
+      const label = it.options.find(o => o[0] === k)[1];
       const row = document.createElement('label');
       row.className = 'opt';
       const input = document.createElement('input');
@@ -652,7 +667,7 @@ function renderQuestions(){
       row.appendChild(input);
       const kEl = document.createElement('span');
       kEl.className = 'key';
-      kEl.textContent = k + '.';
+      kEl.textContent = LETTERS[pos] + '.';
       row.appendChild(kEl);
       const txt = document.createElement('span');
       txt.textContent = label;
@@ -672,6 +687,7 @@ function renderQuestions(){
 
     list.appendChild(card);
   });
+  if(optOrdersDirty){ optOrdersDirty = false; saveState(); }
 }
 
 function updateProgress(){
@@ -754,7 +770,8 @@ TESTS.slice(0,4).forEach(t => {
 
 let mode = 'tests';
 let quiz = null; // {qs, i, picked, checked, right, wrongIds, scope}
-let lastQuiz = null; // previous quiz's question list, so the next one never repeats its order
+let lastQuiz = null;
+const lastOpt = {}; // question id -> answer order used last time in quiz mode // previous quiz's question list, so the next one never repeats its order
 
 function setMode(m){
   mode = m;
@@ -805,7 +822,9 @@ function renderQuizSetup(){
 
 function startQuiz(qs, scope){
   lastQuiz = qs;
-  quiz = { qs, i: 0, picked: [], checked: false, right: 0, wrongIds: [], scope };
+  const opt = {};
+  qs.forEach(q => { opt[q.id] = shuffleOptions(q, lastOpt[q.id]); lastOpt[q.id] = opt[q.id]; });
+  quiz = { qs, opt, i: 0, picked: [], checked: false, right: 0, wrongIds: [], scope };
   renderQuizQ();
 }
 
@@ -814,13 +833,15 @@ function renderQuizQ(){
   const q = quiz.qs[quiz.i];
   const isSata = q.type === 'sata';
   const ok = quiz.checked && quiz.picked.slice().sort().join(',') === q.correct.slice().sort().join(',');
-  const opts = q.options.map(([k, label]) => {
+  const order = quiz.opt[q.id];
+  const opts = order.map((k, pos) => {
+    const label = q.options.find(o => o[0] === k)[1];
     let cls = 'opt';
     if(quiz.checked){
       if(q.correct.includes(k)) cls += ' is-correct';
       else if(quiz.picked.includes(k)) cls += ' is-wrong';
     }
-    return `<label class="${cls}"><input type="${isSata?'checkbox':'radio'}" name="qz" value="${k}" ${quiz.picked.includes(k)?'checked':''} ${quiz.checked?'disabled':''}><span class="key">${k}.</span><span>${esc(label)}</span></label>`;
+    return `<label class="${cls}"><input type="${isSata?'checkbox':'radio'}" name="qz" value="${k}" ${quiz.picked.includes(k)?'checked':''} ${quiz.checked?'disabled':''}><span class="key">${LETTERS[pos]}.</span><span>${esc(label)}</span></label>`;
   }).join('');
   v.innerHTML = `
     <div class="quiz-top"><span>Question ${quiz.i+1} of ${quiz.qs.length}</span><span>${quiz.right} correct</span></div>
@@ -831,7 +852,7 @@ function renderQuizQ(){
       <p class="q-prompt">${esc(q.prompt)}</p>
       ${isSata ? '<p class="q-sata-hint">Select all that apply.</p>' : ''}
       <div class="opts">${opts}</div>
-      ${quiz.checked ? `<div class="feedback ${ok?'ok':'bad'}">${ok ? 'Correct' : 'Not quite — correct answer: ' + q.correct.join(', ')}</div><div class="rationale"><span class="label">Rationale</span>${q.rationale}</div>` : ''}
+      ${quiz.checked ? `<div class="feedback ${ok?'ok':'bad'}">${ok ? 'Correct' : 'Not quite — correct answer: ' + shownLetters(order, q.correct)}</div><div class="rationale"><span class="label">Rationale</span>${q.rationale}</div>` : ''}
     </div>
     <div class="row" style="justify-content:space-between">
       <button class="ghost" id="qzQuit">End quiz</button>
