@@ -242,7 +242,7 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
   <div class="masthead">
     <div>
       <h1>NCLEX Prep</h1>
-      <p>Practice sets built from your course objectives — pediatric body systems, Exam 1 (genetics, professional nursing, growth &amp; development, the hospitalized child) Exam 2 (pregnancy, labor, postpartum, family &amp; community health), Exam 5 (cardiac, respiratory, normal newborn, endocrine) and Exam 6 (infectious disease, neuro, high-risk newborn, GI/GU).</p>
+      <p>Five 50-question exams (Peds Systems, Exam 1, 2, 5 and 6) and a 100-question cumulative final, built from your course objectives. Every question is unique.</p>
     </div>
     <div class="masthead-right">
       <span class="chip-count" id="railCount"></span>
@@ -259,7 +259,6 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
   <div id="quizView" class="quiz-wrap hidden"></div>
   <div id="reportView" class="quiz-wrap hidden"></div>
 
-  <div class="groupbar" id="groupBar"></div>
   <div class="layout" id="testsView">
     <nav class="rail" id="rail"></nav>
     <div class="panel">
@@ -283,6 +282,7 @@ details.missed-group summary{cursor:pointer; font-weight:600; font-size:14px;}
 
 <script src="exams.js"></script>
 <script src="exams2.js"></script>
+<script src="curation.js"></script>
 <script>
 /* ---------- DATA ---------- */
 const TESTS = [
@@ -506,33 +506,22 @@ const TESTS = [
       options:[['A','Offer a red popsicle to soothe the throat'],['B','Document the finding and reassess in 4 hours'],['C','Notify the provider immediately; this may indicate post-tonsillectomy hemorrhage'],['D','Encourage the child to cough forcefully to clear the throat']],
       correct:['C'], rationale:"Frequent swallowing, restlessness, and increased heart rate are classic early signs of post-tonsillectomy hemorrhage and require immediate provider notification; this is a surgical emergency."}
   ]
-},
-{
-  id:'tc', group:'peds', combinedOf:['t1','t2','t3','t4'], tab:'Peds · Combined', title:'Combined 50-Item Exam',
-  desc:'All four systems in one sitting \u2014 musculoskeletal, integumentary, hematology/immunology/oncology, and ENT &amp; eye, mirroring the standalone combined test and answer key.',
-  items:[] // filled below by concatenation
 }
 ];
 
-// Build the combined exam as a curated re-sequencing (13+12+13+12 = 50 items),
-// pulling directly from the four source tests above so the content matches exactly.
-function pick(testIdx, idxs){ return idxs.map(i => TESTS[testIdx].items[i]); }
-TESTS[4].items = [
-  // Section 1: Musculoskeletal (13) -> t1 indices 0,2,3,5,7,9,10,11,12,13,14,15,16,17,18 trimmed to 13
-  ...pick(0, [0,2,3,5,7,9,10,11,12,13,14,15,17]),
-  // Section 2: Integumentary (12)
-  ...pick(1, [1,2,3,4,7,10,11,13,14,15,16,17]),
-  // Section 3: Hematology/Immunology/Oncology (13)
-  ...pick(2, [0,1,3,6,7,8,9,10,11,12,13,14,16]),
-  // Section 4: ENT & Eye (12)
-  ...pick(3, [0,2,3,5,6,4,7,8,9,10,11,13])
+// Topic units (the source of every question): four peds systems + Exam 1/2/5/6 units.
+const UNITS = [...TESTS, ...(window.EXTRA_TESTS || []).filter(t => !t.combinedOf)];
+(window.EXTRA_ITEMS || []).forEach(({ unit, item }) => { item.extra = true; UNITS.find(u => u.id === unit).items.push(item); });
+const DUPES = new Set(window.DUPLICATE_IDS || []);
+UNITS.forEach(u => u.items.forEach((it, i) => { if(DUPES.has(u.id + '::' + i)) it.dup = true; }));
+const SOURCE_TESTS = UNITS;
+const GROUPS = [
+  { id:'peds',  name:'Peds Systems', desc:'Musculoskeletal, integumentary, hematology/immunology/oncology, and ENT &amp; eye disorders.' },
+  { id:'exam1', name:'Exam 1', desc:'Genetics, fetal development &amp; the newborn; professional nursing (legal, ethical, SBAR, abuse reporting); growth &amp; development; the hospitalized child.' },
+  { id:'exam2', name:'Exam 2', desc:'Pregnancy &amp; prenatal care; labor &amp; birth; postpartum care; family &amp; community health.' },
+  { id:'exam5', name:'Exam 5', desc:'Cardiac conditions; respiratory disorders; the normal newborn; endocrine disorders.' },
+  { id:'exam6', name:'Exam 6', desc:'Infectious diseases; neurologic &amp; neuromuscular disorders; the high-risk newborn; GI &amp; GU disorders.' }
 ];
-
-// Exam 1 & Exam 2 sets (exams.js); "All units" exams reuse the unit questions in order.
-TESTS.push(...(window.EXTRA_TESTS || []));
-TESTS.forEach(t => { if(t.combinedOf && !t.items) t.items = t.combinedOf.flatMap(id => TESTS.find(x => x.id === id).items); });
-const SOURCE_TESTS = TESTS.filter(t => !t.combinedOf);
-const GROUPS = [{ id:'peds', name:'Peds Systems' }, { id:'exam1', name:'Exam 1' }, { id:'exam2', name:'Exam 2' }, { id:'exam5', name:'Exam 5' }, { id:'exam6', name:'Exam 6' }];
 
 /* ---------- STATE & RENDER ---------- */
 let activeIdx = 0;
@@ -555,7 +544,41 @@ function freshShuffle(arr, prev, sig = x => x){
 // Group a test into blocks: each case study stays together with the questions that follow it.
 // Which case study each question belongs to in its original test (the combined exam reuses these objects).
 const CASE_OF = new Map();
-SOURCE_TESTS.forEach(t => { let note = null; t.items.forEach(it => { if(it.type === 'note') note = it; else CASE_OF.set(it, note); }); });
+SOURCE_TESTS.forEach(t => { let note = null; t.items.forEach(it => { if(it.type === 'note') note = it; else CASE_OF.set(it, it.extra ? null : note); }); });
+
+/* ---------- EXAMS: five fixed 50-question exams + a 100-question final, no question used twice ---------- */
+const EXAM_SIZE = 50;
+function unitBlocks(u){
+  const blocks = []; let cur = null;
+  u.items.forEach(it => {
+    if(it.dup) return;
+    if(it.type === 'note'){ cur = { note: it, items: [it] }; blocks.push(cur.items); }
+    else if(cur && CASE_OF.get(it) === cur.note){ cur.items.push(it); }
+    else { cur = null; blocks.push([it]); }
+  });
+  return blocks.filter(b => b.some(x => x.type !== 'note'));
+}
+const nQ = b => b.filter(x => x.type !== 'note').length;
+TESTS.length = 0;
+const FINAL_ITEMS = [];
+GROUPS.forEach(g => {
+  // Case studies first, then single questions; take one block per unit in turn so every unit is represented.
+  const queues = UNITS.filter(u => u.group === g.id).map(u => { const bl = unitBlocks(u); return [...bl.filter(b => b[0].type === 'note'), ...bl.filter(b => b[0].type !== 'note')]; });
+  const items = []; let n = 0, moved = true;
+  while(n < EXAM_SIZE && moved){
+    moved = false;
+    for(const qu of queues){
+      if(n >= EXAM_SIZE) break;
+      const k = qu.findIndex(b => nQ(b) <= EXAM_SIZE - n);
+      if(k < 0) continue;
+      const [b] = qu.splice(k, 1); items.push(...b); n += nQ(b); moved = true;
+    }
+  }
+  queues.forEach(qu => qu.forEach(b => FINAL_ITEMS.push(...b)));
+  TESTS.push({ id: 'x-' + g.id, group: g.id, tab: n + ' questions', title: g.id === 'peds' ? 'Peds Systems Exam' : g.name, desc: g.desc, items });
+});
+TESTS.push({ id: 'final', group: 'final', tab: FINAL_ITEMS.filter(x => x.type !== 'note').length + ' questions', title: 'Final Exam',
+  desc: 'Cumulative final covering every exam. None of these questions appear in Exams 1–6 or the Peds Systems exam.', items: FINAL_ITEMS });
 function testBlocks(t){
   const blocks = []; let cur = null;
   t.items.forEach((it, i) => {
@@ -592,13 +615,9 @@ function orderFor(t){
 function qKey(testId, i){ return testId + '::' + i; }
 
 function renderRail(){
-  const group = TESTS[activeIdx].group;
-  document.getElementById('groupBar').innerHTML = GROUPS.map(g =>
-    `<button class="${g.id === group ? 'active' : ''}" onclick="activeIdx = TESTS.findIndex(t => t.group === '${g.id}'); renderAll(); window.scrollTo({top:0});">${g.name}</button>`).join('');
   const rail = document.getElementById('rail');
   rail.innerHTML = '';
   TESTS.forEach((t, i) => {
-    if(t.group !== group) return;
     const b = document.createElement('button');
     const qCount = t.items.filter(it => it.type !== 'note').length;
     b.className = i === activeIdx ? 'active' : '';
@@ -607,7 +626,7 @@ function renderRail(){
     rail.appendChild(b);
   });
   const total = TESTS[activeIdx].items.filter(it => it.type !== 'note').length;
-  document.getElementById('railCount').textContent = total + ' items';
+  document.getElementById('railCount').textContent = total + ' questions';
 }
 
 function renderIntro(){
@@ -615,7 +634,7 @@ function renderIntro(){
   const qCount = t.items.filter(it => it.type !== 'note').length;
   document.getElementById('introCard').innerHTML = `
     <h2>${t.title.replace('&amp;','&')}</h2>
-    <div class="meta">${qCount} items \u00b7 multiple choice &amp; select-all-that-apply</div>
+    <div class="meta">${qCount} questions \u00b7 multiple choice &amp; select-all-that-apply</div>
     <p>${t.desc}</p>${historyLine(t.id)}`;
 }
 
@@ -840,7 +859,7 @@ const CONCEPTS = {
 // Source question id for every question object (the combined exam reuses the same objects).
 const ID_OF = new Map(), Q_BY_ID = {};
 SOURCE_TESTS.forEach(t => t.items.forEach((it, i) => {
-  if(it.type === 'note') return;
+  if(it.type === 'note' || it.dup) return;
   const id = t.id + '::' + i;
   ID_OF.set(it, id);
   Q_BY_ID[id] = { id, it, testId: t.id, topic: t.title.replace('&amp;','&'), concept: (CONCEPTS[t.id] && CONCEPTS[t.id][i]) || it.c || t.title.replace('&amp;','&') };
@@ -959,13 +978,14 @@ function quizStudyList(){
 }
 
 /* ---------- QUIZ MODE ---------- */
-// Question bank from the four topic tests (the combined exam reuses these, so it's excluded).
+// Question bank: every unique question from the topic units (retired duplicates excluded).
 const BANK = [];
 SOURCE_TESTS.forEach(t => {
   let context = null;
   t.items.forEach((it, i) => {
     if(it.type === 'note'){ context = it.text; return; }
-    BANK.push({ id: t.id + '::' + i, testId: t.id, topic: t.title.replace('&amp;','&'), context, ...it });
+    if(it.dup) return;
+    BANK.push({ id: t.id + '::' + i, testId: t.id, topic: t.title.replace('&amp;','&'), context: it.extra ? null : context, ...it });
   });
 });
 
@@ -983,7 +1003,6 @@ function setMode(m){
   document.getElementById('reportView').classList.toggle('hidden', m !== 'report');
   if(m === 'report') renderReport();
   document.getElementById('railCount').classList.toggle('hidden', m !== 'tests');
-  document.getElementById('groupBar').classList.toggle('hidden', m !== 'tests');
   if(m === 'quiz' && !quiz) renderQuizSetup();
   window.scrollTo({top:0});
 }
@@ -995,12 +1014,13 @@ function renderQuizSetup(){
   const v = document.getElementById('quizView');
   const missedCount = BANK.filter(q => missed[q.id]).length;
   const curGroup = TESTS[activeIdx].group;
-  const topics = GROUPS.map(g => `<div class="topic-group"><h4><input type="checkbox" class="grp-toggle" data-g="${g.id}" ${g.id === curGroup ? 'checked' : ''}>${g.name}</h4><div class="topic-grid">` +
+  const isOn = gid => curGroup === 'final' || gid === curGroup;
+  const topics = GROUPS.map(g => `<div class="topic-group"><h4><input type="checkbox" class="grp-toggle" data-g="${g.id}" ${isOn(g.id) ? 'checked' : ''}>${g.name}</h4><div class="topic-grid">` +
     SOURCE_TESTS.filter(t => t.group === g.id).map(t => {
       const n = BANK.filter(q => q.testId === t.id).length;
       const h = attempts['quiz:' + t.id] || [];
       const last = h.length ? ` · last ${h[h.length-1].pct}%` : '';
-      return `<label class="topic"><input type="checkbox" data-g="${g.id}" value="${t.id}" ${g.id === curGroup ? 'checked' : ''}><span>${t.title}<small>${n} questions${last}</small></span></label>`;
+      return `<label class="topic"><input type="checkbox" data-g="${g.id}" value="${t.id}" ${isOn(g.id) ? 'checked' : ''}><span>${t.title}<small>${n} questions${last}</small></span></label>`;
     }).join('') + '</div></div>').join('');
   const recent = Object.entries(attempts).filter(([k]) => k.startsWith('quiz:')).flatMap(([k, list]) => list.map(a => ({...a, k})))
     .sort((a,b) => b.at - a.at).slice(0,5);
@@ -1016,7 +1036,7 @@ function renderQuizSetup(){
         <button class="ghost" id="qzMissed" ${missedCount ? '' : 'disabled'}>Review missed (${missedCount})</button>
       </div>
     </div>
-    ${recent.length ? `<div class="card"><h2 style="font-size:17px">Recent quizzes</h2><ul class="missed-list">${recent.map(a => `<li>${new Date(a.at).toLocaleDateString()} — ${a.score}/${a.total} (${a.pct}%) · ${a.k === 'quiz:missed' ? 'Missed review' : a.k === 'quiz:study' ? 'Study plan' : a.k === 'quiz:mixed' ? 'Mixed topics' : ((TESTS.find(t => 'quiz:'+t.id === a.k)||{}).title || '')}</li>`).join('')}</ul></div>` : ''}`;
+    ${recent.length ? `<div class="card"><h2 style="font-size:17px">Recent quizzes</h2><ul class="missed-list">${recent.map(a => `<li>${new Date(a.at).toLocaleDateString()} — ${a.score}/${a.total} (${a.pct}%) · ${a.k === 'quiz:missed' ? 'Missed review' : a.k === 'quiz:study' ? 'Study plan' : a.k === 'quiz:mixed' ? 'Mixed topics' : ((SOURCE_TESTS.find(t => 'quiz:'+t.id === a.k)||{}).title || '')}</li>`).join('')}</ul></div>` : ''}`;
   v.querySelectorAll('.grp-toggle').forEach(g => g.onchange = () => v.querySelectorAll(`.topic input[data-g="${g.dataset.g}"]`).forEach(x => x.checked = g.checked));
   document.getElementById('qzStart').onclick = () => {
     const ids = [...v.querySelectorAll('.topic input:checked')].map(x => x.value);
